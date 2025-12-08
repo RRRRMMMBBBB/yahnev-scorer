@@ -1,276 +1,747 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Yahnev Scorer</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Yahnev Scoring</title>
 <style>
-  body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    background: #fafafa;
-    color: #222;
+  :root {
+    --bg: #0b0c10;
+    --card: #15171e;
+    --ink: #e6e8ef;
+    --muted: #9aa3b2;
+    --accent: #6ee7b7;
+    --accent-2: #60a5fa;
+    --danger: #f87171;
+    --win: #fde68a;
+    --border: #232632;
+  }
+  [data-theme="light"]{
+    --bg: #f7f8fb; --card:#ffffff; --ink:#0b0c10; --muted:#545b68;
+    --accent:#059669; --accent-2:#2563eb; --danger:#b91c1c; --win:#f59e0b22; --border:#e6e8ef;
+  }
+  *{box-sizing:border-box}
+
+  body{
+    margin:0;
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+    background:var(--bg);
+    color:var(--ink);
+    line-height:1.4;
+    font-size:16px;
   }
 
-  h1 {
-    text-align: center;
-    padding: 16px 0 0;
-    margin: 0;
-    font-size: 28px;
-    font-weight: 700;
+  header{
+    padding:14px 12px;
+    border-bottom:1px solid var(--border);
+    position:sticky;
+    top:0;
+    background:var(--bg);
+    z-index:10;
+    display:flex;
+    gap:8px;
+    align-items:flex-start;
+    justify-content:space-between;
+  }
+  h1{
+    margin:0;
+    font-size:18px;
+    letter-spacing:.3px;
+  }
+  .header-right{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    justify-content:flex-end;
   }
 
-  .section {
-    padding: 16px;
+  .container{
+    max-width:1000px;
+    margin:0 auto;
+    padding:12px;
+    display:grid;
+    gap:12px;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:12px;
+  }
+  @media (min-width: 900px){
+    .container{padding:16px;}
+    .grid{grid-template-columns: 360px 1fr; gap:16px;}
   }
 
-  input[type="text"], input[type="number"], select {
-    padding: 10px;
-    font-size: 18px;
-    width: 100%;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    margin-bottom: 12px;
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:14px;
+  }
+  .card h2{
+    margin:0 0 8px 0;
+    font-size:16px;
   }
 
-  button {
-    width: 100%;
-    padding: 14px;
-    border-radius: 8px;
-    border: none;
-    font-size: 18px;
-    background: #007aff;
-    color: white;
-    font-weight: bold;
-    margin-top: 6px;
+  .row{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    flex-wrap:wrap;
   }
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 12px;
+  input[type="text"],
+  input[type="number"]{
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--ink);
+    padding:10px 12px;
+    border-radius:10px;
+    outline:none;
+    width:100%;
+    font-size:15px;
+  }
+  input[type="number"]{
+    max-width:120px;
   }
 
-  th, td {
-    padding: 12px;
-    font-size: 18px;
-    text-align: center;
+  button{
+    appearance:none;
+    border:1px solid var(--border);
+    background:transparent;
+    color:var(--ink);
+    padding:10px 12px;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:14px;
+  }
+  button.primary{
+    background:var(--accent-2);
+    border-color:transparent;
+    color:white;
+  }
+  button.ghost{background:transparent}
+  button.danger{
+    background:transparent;
+    border-color:var(--danger);
+    color:var(--danger);
+  }
+  button:disabled{
+    opacity:.5;
+    cursor:not-allowed;
   }
 
-  .log-item {
-    background: white;
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 8px;
-    font-size: 16px;
-    border: 1px solid #ddd;
+  .tbl{
+    width:100%;
+    border-collapse:collapse;
+    overflow:hidden;
+    border-radius:10px;
+    border:1px solid var(--border);
+  }
+  .tbl th, .tbl td{
+    padding:8px 10px;
+    text-align:left;
+    border-bottom:1px solid var(--border);
+    font-size:14px;
+  }
+  .tbl th{
+    font-weight:600;
+    color:var(--muted);
   }
 
-  #log {
-    max-height: 280px;
-    overflow-y: auto;
+  .pill{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:4px 8px;
+    border-radius:999px;
+    font-size:12px;
+    border:1px solid var(--border);
+  }
+  .pill.win{background:var(--win)}
+  .muted{color:var(--muted)}
+  .stack{display:flex; flex-direction:column; gap:8px}
+  .divider{height:1px; background:var(--border); margin:8px 0}
+  .right{margin-left:auto}
+  .badge{
+    font-size:11px;
+    padding:3px 6px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    color:var(--muted);
+    white-space:nowrap;
+  }
+  .tot{font-variant-numeric: tabular-nums}
+  .log{
+    max-height:300px;
+    overflow:auto;
+    border:1px solid var(--border);
+    border-radius:10px;
+  }
+  .log-item{
+    padding:8px 10px;
+    border-bottom:1px solid var(--border);
+    font-size:13px;
+  }
+  .log-item:last-child{border-bottom:none}
+  .flex{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+  .label{font-size:12px; color:var(--muted)}
+  .spacer{flex:1}
+  .small{font-size:12px}
+  .switch{display:flex; gap:4px; align-items:center}
+  .note{font-size:12px; color:var(--muted)}
+
+  /* Fire rain animation */
+  .fire-rain{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    z-index:9999;
+    overflow:hidden;
+  }
+  .fire-emoji{
+    position:absolute;
+    font-size:24px;
+    animation:fire-fall 1.6s linear forwards;
+    opacity:0.9;
+  }
+  @keyframes fire-fall{
+    0%{transform:translate3d(0,-50px,0);opacity:0}
+    10%{opacity:1}
+    100%{transform:translate3d(0,110vh,0);opacity:0}
   }
 
-  .player-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
+  /* Mobile optimisations */
+  @media (max-width: 600px){
+    header{
+      padding:10px 10px;
+      flex-direction:column;
+      align-items:flex-start;
+      gap:6px;
+    }
+    h1{
+      font-size:17px;
+    }
+    .header-right{
+      justify-content:flex-start;
+    }
+    .card{
+      padding:12px;
+    }
+    .row{
+      gap:6px;
+    }
+    button,
+    input[type="text"],
+    input[type="number"]{
+      font-size:15px;
+    }
+    /* Make primary actions easy to hit */
+    #submitRoundBtn,
+    #undoBtn,
+    #resetBtn,
+    #addPlayerBtn{
+      flex:1 0 45%;
+    }
+    .limit-btn{
+      flex:1 0 20%;
+      text-align:center;
+      justify-content:center;
+    }
   }
-
-  .player-row input[type="number"] {
-    width: 90px;
-  }
-
-  .yahnev-radio {
-    transform: scale(1.3);
-  }
-
-  .fire {
-    font-size: 26px;
-    animation: pop 0.4s ease;
-  }
-
-  @keyframes pop {
-    0% { transform: scale(0.1); opacity: 0; }
-    100% { transform: scale(1.2); opacity: 1; }
-  }
-
 </style>
 </head>
-<body>
+<body data-theme="dark">
+  <header>
+    <h1>Yahnev Scoring</h1>
+    <div class="header-right">
+      <span class="badge">Game total: <span id="gameLimitDisplay">100</span></span>
+      <span class="badge">Exact: 50 / 100 / 150 / 200 ⇒ –50</span>
+      <span class="badge">Streak 3+ ⇒ –10</span>
+      <span class="badge">Assaf: Yahnev caller +25 if any opponent ≤ caller</span>
+      <div class="switch">
+        <span class="small muted">Light</span>
+        <label class="switch">
+          <input id="themeToggle" type="checkbox" />
+          <span class="small muted">Dark</span>
+        </label>
+      </div>
+    </div>
+  </header>
 
-<h1>Yahnev</h1>
+  <div class="container grid">
+    <!-- Left: Add round (top) + players -->
+    <section class="stack">
+      <div class="card" id="roundCard">
+        <h2>Add Round</h2>
+        <p class="muted small">
+          Enter each player’s round score and tick who <strong>called Yahnev</strong>.
+          Assaf (+25) applies if an opponent has an equal or lower score than the caller.
+        </p>
+        <div id="roundFormArea" class="stack"></div>
+        <div class="divider"></div>
+        <div class="row">
+          <button id="submitRoundBtn" class="primary">Add Round</button>
+          <button id="undoBtn">Undo Last</button>
+          <span class="spacer"></span>
+          <span class="label">Round: <strong id="roundNumber">0</strong></span>
+        </div>
+        <p class="note">
+          Assaf: caller gets +25 and the win moves to the opponent with the lowest ≤ score.
+          Streak and exact-total bonuses apply after that.
+        </p>
+      </div>
 
-<div class="section" id="players"></div>
+      <div class="card">
+        <h2>Players</h2>
 
-<div class="section" id="addPlayerSection">
-  <input id="newPlayer" type="text" placeholder="Name">
-  <button onclick="addPlayer()">Add Player</button>
-</div>
+        <div class="row small">
+          <span class="label">Game total:</span>
+          <button type="button" class="ghost small limit-btn" data-limit="50">50</button>
+          <button type="button" class="ghost small limit-btn" data-limit="100">100</button>
+          <button type="button" class="ghost small limit-btn" data-limit="150">150</button>
+          <button type="button" class="ghost small limit-btn" data-limit="200">200</button>
+        </div>
 
-<div class="section">
-  <h2>Add Round</h2>
-  <div id="roundInputs"></div>
-  <button onclick="addRound()">Submit Round</button>
-  <button onclick="undo()">Undo</button>
-</div>
+        <div class="divider"></div>
 
-<div class="section">
-  <h2>Scores</h2>
-  <table border="1">
-    <thead>
-      <tr>
-        <th>Player</th>
-        <th>Total</th>
-        <th>Streak</th>
-      </tr>
-    </thead>
-    <tbody id="scoreTable"></tbody>
-  </table>
-</div>
+        <div class="row">
+          <input id="playerName" type="text" placeholder="Add player name (max 6)" />
+          <button id="addPlayerBtn" class="primary">Add</button>
+          <button id="resetBtn" class="danger right">Reset Game</button>
+        </div>
+        <div class="divider"></div>
+        <div id="playersList" class="stack"></div>
+      </div>
+    </section>
 
-<div class="section">
-  <h2>Log</h2>
-  <div id="log"></div>
-</div>
+    <!-- Right: Leaderboard + log -->
+    <section class="stack">
+      <div class="card">
+        <h2>Leaderboard</h2>
+        <table class="tbl" id="board">
+          <thead>
+            <tr>
+              <th>#</th><th>Player</th><th>Total</th><th>Streak</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h2>Round Log</h2>
+        <div id="log" class="log small"></div>
+      </div>
+    </section>
+  </div>
 
 <script>
-let players = [];
-let rounds = [];
-const ASSAF_PENALTY = 25;
-const STREAK_PENALTY = -10;
+(function(){
+  const MAX_PLAYERS = 6;
+  const STREAK_BONUS_THRESHOLD = 3;    // 3+ wins in a row
+  const STREAK_BONUS_PER_ROUND = -10;  // applied each streak round
+  const EXACT_TOTALS = new Set([50,100,150,200]);
+  const EXACT_BONUS = -50;
+  const ASSAF_PENALTY = 25;            // +25 to caller on Assaf
 
-function addPlayer() {
-  const name = document.getElementById("newPlayer").value.trim();
-  if (!name) return;
-  players.push({ id: Date.now(), name, total: 0, streak: 0 });
-  document.getElementById("newPlayer").value = "";
-  render();
-}
+  const el = (sel) => document.querySelector(sel);
+  const playersList = el('#playersList');
+  const addPlayerBtn = el('#addPlayerBtn');
+  const playerNameInput = el('#playerName');
+  const boardBody = el('#board tbody');
+  const roundFormArea = el('#roundFormArea');
+  const submitRoundBtn = el('#submitRoundBtn');
+  const undoBtn = el('#undoBtn');
+  const logEl = el('#log');
+  const roundNumberEl = el('#roundNumber');
+  const resetBtn = el('#resetBtn');
+  const themeToggle = el('#themeToggle');
 
-function addRound() {
-  if (players.length === 0) return;
+  const state = {
+    players: [],          // {id, name, total, streak, lastWon}
+    rounds: [],           // [{ entries:[...], yanivCallerId }]
+    gameLimit: 100        // 50 / 100 / 150 / 200
+  };
 
-  let entries = [];
-  let caller = null;
-
-  players.forEach(p => {
-    const raw = Number(document.getElementById("score_" + p.id).value || 0);
-    entries.push({ id: p.id, raw });
-    const isCaller = document.getElementById("call_" + p.id).checked;
-    if (isCaller) caller = p.id;
-  });
-
-  // determine winner
-  const scores = entries.map(e => ({ id: e.id, score: e.raw }));
-  let winner = null;
-
-  if (caller != null) {
-    const callerEntry = scores.find(s => s.id === caller);
-    const beaten = scores.filter(s => s.id !== caller && s.score <= callerEntry.score);
-
-    if (beaten.length > 0) {
-      const lowest = beaten.sort((a,b)=>a.score-b.score)[0];
-      winner = lowest.id;
-      callerEntry.score += ASSAF_PENALTY;
-      const ce = entries.find(e => e.id === caller);
-      ce.raw += ASSAF_PENALTY;
-    } else {
-      winner = caller;
-    }
-  } else {
-    winner = scores.sort((a,b)=>a.score-b.score)[0].id;
+  function save(){
+    localStorage.setItem('yahnev_state', JSON.stringify(state));
   }
 
-  // apply streak + scoring
-  players.forEach(p => {
-    const e = entries.find(x => x.id === p.id);
-    if (p.id === winner) {
-      p.streak++;
-      if (p.streak >= 3) {
-        e.raw += STREAK_PENALTY;
+  function load(){
+    const raw = localStorage.getItem('yahnev_state');
+    if(!raw) return;
+    try{
+      const s = JSON.parse(raw);
+      if(s && Array.isArray(s.players) && Array.isArray(s.rounds)){
+        state.players = s.players;
+        state.rounds = s.rounds;
+        state.gameLimit = typeof s.gameLimit === 'number' ? s.gameLimit : 100;
       }
+    }catch(_){}
+  }
+
+  function renderPlayers(){
+    playersList.innerHTML = '';
+    state.players.forEach(p=>{
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.innerHTML = `
+        <span class="pill">${p.name}</span>
+        <span class="muted small">Total: <strong class="tot">${p.total}</strong></span>
+        <span class="muted small">Streak: <strong>${p.streak}</strong></span>
+        <button class="ghost small" data-remove="${p.id}">Remove</button>
+      `;
+      playersList.appendChild(row);
+    });
+    playersList.querySelectorAll('button[data-remove]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const id = btn.getAttribute('data-remove');
+        removePlayer(id);
+      });
+    });
+    addPlayerBtn.disabled = state.players.length >= MAX_PLAYERS;
+  }
+
+  function renderRoundForm(){
+    roundFormArea.innerHTML = '';
+    if(state.players.length === 0){
+      roundFormArea.innerHTML = `<p class="muted small">Add at least one player to start.</p>`;
+      submitRoundBtn.disabled = true;
+      undoBtn.disabled = state.rounds.length === 0;
+      roundNumberEl.textContent = state.rounds.length;
+      return;
+    }
+    submitRoundBtn.disabled = false;
+    undoBtn.disabled = state.rounds.length === 0;
+    roundNumberEl.textContent = state.rounds.length;
+
+    state.players.forEach(p=>{
+      const wrapper = document.createElement('div');
+      wrapper.className = 'row';
+      wrapper.innerHTML = `
+        <label class="small" style="min-width:120px">${p.name}</label>
+        <input type="number" step="1" inputmode="numeric" pattern="[0-9]*" placeholder="Round score" data-score="${p.id}" />
+        <label class="small flex">
+          <input type="radio" name="yaniv" value="${p.id}" />
+          <span>Called Yahnev</span>
+        </label>
+      `;
+      roundFormArea.appendChild(wrapper);
+    });
+  }
+
+  function renderGameLimit(){
+    const display = el('#gameLimitDisplay');
+    if(display) display.textContent = state.gameLimit;
+    document.querySelectorAll('.limit-btn').forEach(btn=>{
+      const val = Number(btn.dataset.limit);
+      if(val === state.gameLimit){
+        btn.classList.add('primary');
+        btn.classList.remove('ghost');
+      } else {
+        btn.classList.remove('primary');
+        btn.classList.add('ghost');
+      }
+    });
+  }
+
+  function renderBoard(){
+    const arr = [...state.players].sort((a,b)=> a.total - b.total);
+    const limit = state.gameLimit || Infinity;
+    boardBody.innerHTML = '';
+    arr.forEach((p, idx)=>{
+      const tr = document.createElement('tr');
+      const isOut = p.total >= limit;
+      let streakContent = '';
+      if(p.streak > 0){
+        const fireCount = Math.min(p.streak, 5);
+        const fires = '🔥'.repeat(fireCount);
+        const extra = p.streak > 5 ? ` x${p.streak}` : '';
+        streakContent = `<span class="pill win">${fires}${extra}</span>`;
+      } else {
+        streakContent = `<span class="pill">0</span>`;
+      }
+      tr.innerHTML = `
+        <td>${idx+1}</td>
+        <td>${p.name}${isOut ? ' 💀' : ''}</td>
+        <td class="tot">${p.total}</td>
+        <td>${streakContent}</td>
+      `;
+      boardBody.appendChild(tr);
+    });
+  }
+
+  function renderLog(){
+    logEl.innerHTML = '';
+    if(state.rounds.length === 0){
+      logEl.innerHTML = `<div class="log-item muted">No rounds yet.</div>`;
+      return;
+    }
+    state.rounds.forEach((r,i)=>{
+      const div = document.createElement('div');
+      const n = i+1;
+      const lines = r.entries.map(e=>{
+        const p = state.players.find(pp=>pp.id===e.id);
+        const name = p ? p.name : 'Player';
+        const parts = [`${name}: +${e.raw}`];
+        if(e.assafCaller) parts.push(`Assaf caller +${ASSAF_PENALTY}`);
+        if(e.assafAgainst) parts.push(`(won via Assaf)`);
+        if(e.appliedStreakBonus) parts.push(`streak ${STREAK_BONUS_PER_ROUND}`);
+        if(e.appliedExactBonus) parts.push(`${EXACT_BONUS} exact`);
+        if(e.won && !e.assafAgainst) parts.push(`(won)`);
+        return '• ' + parts.join(' / ');
+      }).join('<br/>');
+      div.className = 'log-item';
+      div.innerHTML = `<strong>Round ${n}</strong><br/>${lines}`;
+      logEl.appendChild(div);
+    });
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function addPlayer(name){
+    if(!name) return;
+    if(state.players.length >= MAX_PLAYERS) return;
+    const id = crypto.randomUUID();
+    state.players.push({ id, name: name.trim(), total: 0, streak: 0, lastWon: false });
+    save();
+    renderPlayers(); renderRoundForm(); renderBoard();
+  }
+
+  function removePlayer(id){
+    if(state.rounds.length){
+      alert('You can’t remove players after rounds have started. Use Reset Game if needed.');
+      return;
+    }
+    state.players = state.players.filter(p=>p.id!==id);
+    save();
+    renderPlayers(); renderRoundForm(); renderBoard();
+  }
+
+  function parseRoundInputs(){
+    const entries = [];
+    for(const p of state.players){
+      const scoreEl = roundFormArea.querySelector(`input[data-score="${p.id}"]`);
+      const val = scoreEl.value.trim();
+      if(val === '') return { ok:false, error:`Please enter a score for ${p.name}.` };
+      const n = Number(val);
+      if(!Number.isFinite(n)) return { ok:false, error:`Score for ${p.name} must be a number.` };
+      entries.push({ id: p.id, raw: Math.trunc(n), won: false });
+    }
+    const yanivRadio = document.querySelector('input[name="yaniv"]:checked');
+    if(!yanivRadio){
+      return { ok:false, error:'Select who called Yahnev this round.' };
+    }
+    const yanivCallerId = yanivRadio.value;
+    return { ok:true, entries, yanivCallerId };
+  }
+
+  function resolveRound(entries, yanivCallerId){
+    // Always a caller in your rules
+    const caller = entries.find(e=>e.id===yanivCallerId);
+    if(!caller) return { entries, assaf: null, yanivCallerId };
+
+    const opponents = entries.filter(e=>e.id!==yanivCallerId);
+    const minOpp = opponents.reduce((acc, e)=> acc===null || e.raw < acc.raw ? e : acc, null);
+
+    if(minOpp && minOpp.raw <= caller.raw){
+      // Assaf: caller +25, opponent with lowest ≤ caller wins
+      caller.raw += ASSAF_PENALTY;
+      entries.forEach(e=> e.won = false);
+      minOpp.won = true;
+      return { entries, assaf: { caller: caller.id, winner: minOpp.id }, yanivCallerId };
     } else {
-      p.streak = 0;
+      // No Assaf: caller wins
+      entries.forEach(e=> e.won = false);
+      caller.won = true;
+      return { entries, assaf: { caller: null, winner: caller.id }, yanivCallerId };
     }
+  }
 
-    p.total += e.raw;
-
-    // exact totals bonus
-    if ([50,100,150,200].includes(p.total)) {
-      p.total -= 50;
+  function triggerFireRain(){
+    const container = document.createElement('div');
+    container.className = 'fire-rain';
+    const count = 60;
+    for(let i=0;i<count;i++){
+      const span = document.createElement('span');
+      span.className = 'fire-emoji';
+      span.textContent = '🔥';
+      span.style.left = Math.random() * 100 + 'vw';
+      span.style.animationDelay = (Math.random()*0.8) + 's';
+      span.style.fontSize = (18 + Math.random()*14) + 'px';
+      container.appendChild(span);
     }
+    document.body.appendChild(container);
+    setTimeout(()=>{
+      document.body.removeChild(container);
+    }, 1800);
+  }
+
+  function applyRound(parsed){
+    const { entries: rawEntries, yanivCallerId } = parsed;
+
+    const { entries, assaf, yanivCallerId: storedYaniv } = resolveRound(rawEntries, yanivCallerId);
+    const roundRecord = { entries: [], yanivCallerId: storedYaniv };
+
+    const newStreaks = {};
+    const prevStreaks = {};
+    let fireRainNeeded = false;
+
+    // Compute new streaks
+    state.players.forEach(p=>{
+      const won = entries.find(e=>e.id===p.id)?.won || false;
+      prevStreaks[p.id] = p.streak;
+      const next = won ? p.streak + 1 : 0;
+      newStreaks[p.id] = next;
+    });
+
+    state.players.forEach(p=>{
+      const entry = entries.find(e=>e.id===p.id);
+      let appliedStreakBonus = 0;
+      let appliedExactBonus = 0;
+      let wasAssafCaller = false;
+      let wonViaAssaf = false;
+
+      if(assaf){
+        if(assaf.caller === p.id) wasAssafCaller = true;
+        if(assaf.winner === p.id && assaf.caller) wonViaAssaf = true;
+      }
+
+      // Streak bonus
+      if(newStreaks[p.id] >= STREAK_BONUS_THRESHOLD){
+        appliedStreakBonus = STREAK_BONUS_PER_ROUND;
+      }
+
+      // Apply to total
+      p.total += entry.raw + appliedStreakBonus;
+
+      // Exact totals
+      if(EXACT_TOTALS.has(p.total)){
+        appliedExactBonus = EXACT_BONUS;
+        p.total += EXACT_BONUS;
+      }
+
+      // Did a streak just cross the threshold this round?
+      if(entry.won && prevStreaks[p.id] < STREAK_BONUS_THRESHOLD && newStreaks[p.id] >= STREAK_BONUS_THRESHOLD){
+        fireRainNeeded = true;
+      }
+
+      p.streak = newStreaks[p.id];
+      p.lastWon = !!entry.won;
+
+      roundRecord.entries.push({
+        id: p.id,
+        raw: entry.raw,
+        won: entry.won,
+        appliedStreakBonus: appliedStreakBonus !== 0,
+        appliedExactBonus: appliedExactBonus !== 0,
+        assafCaller: wasAssafCaller,
+        assafAgainst: wonViaAssaf
+      });
+    });
+
+    state.rounds.push(roundRecord);
+    save();
+
+    if(fireRainNeeded){
+      triggerFireRain();
+    }
+  }
+
+  function clearRoundInputs(){
+    roundFormArea.querySelectorAll('input[type="number"]').forEach(i=> i.value = '');
+    document.querySelectorAll('input[name="yaniv"]').forEach(r=> r.checked = false);
+  }
+
+  function undoLastRound(){
+    if(state.rounds.length === 0) return;
+    const names = state.players.map(p=>({id:p.id, name:p.name}));
+    const rounds = [...state.rounds];
+    state.players = names.map(n=>({ id:n.id, name:n.name, total:0, streak:0, lastWon:false }));
+    state.rounds = [];
+    for(let i=0;i<rounds.length-1;i++){
+      const r = rounds[i];
+      const entries = r.entries.map(e=>({ id:e.id, raw:e.raw, won:false }));
+      applyRound({ entries, yanivCallerId: r.yanivCallerId });
+    }
+    save();
+  }
+
+  // Events
+  addPlayerBtn.addEventListener('click', ()=>{
+    const name = playerNameInput.value.trim();
+    if(!name) return;
+    addPlayer(name);
+    playerNameInput.value = '';
+    playerNameInput.focus();
   });
 
-  rounds.push({ entries, caller });
-
-  render();
-}
-
-function undo() {
-  if (rounds.length === 0) return;
-
-  const last = rounds.pop();
-
-  // reverse effects
-  last.entries.forEach(e => {
-    const p = players.find(x => x.id === e.id);
-    p.total -= e.raw;
+  playerNameInput.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter'){ addPlayerBtn.click(); }
   });
 
-  players.forEach(p => p.streak = 0);
+  submitRoundBtn.addEventListener('click', ()=>{
+    if(state.players.length === 0) return;
+    const parsed = parseRoundInputs();
+    if(!parsed.ok){ alert(parsed.error); return; }
+    applyRound(parsed);
+    clearRoundInputs();
+    renderBoard(); renderLog();
+    roundNumberEl.textContent = state.rounds.length;
+    undoBtn.disabled = state.rounds.length === 0;
+  });
 
-  render();
-}
+  undoBtn.addEventListener('click', ()=>{
+    if(!state.rounds.length) return;
+    undoLastRound();
+    renderBoard(); renderLog(); renderRoundForm();
+    roundNumberEl.textContent = state.rounds.length;
+    undoBtn.disabled = state.rounds.length === 0;
+  });
 
-function render() {
-  renderPlayerList();
-  renderRoundInputs();
-  renderScores();
-  renderLog();
-}
+  resetBtn.addEventListener('click', ()=>{
+    if(!confirm('Reset the entire game? Players, rounds, and scores will be cleared.')) return;
+    state.players = [];
+    state.rounds = [];
+    // keep gameLimit as-is
+    save();
+    renderPlayers(); renderBoard(); renderLog(); renderRoundForm(); renderGameLimit();
+    roundNumberEl.textContent = '0';
+    undoBtn.disabled = true;
+  });
 
-function renderPlayerList() {
-  const div = document.getElementById("players");
-  div.innerHTML = players.map(p => `<div>${p.name}</div>`).join("");
-}
+  // Change game limit
+  document.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.limit-btn');
+    if(!btn) return;
+    const val = Number(btn.dataset.limit);
+    if(!val) return;
+    state.gameLimit = val;
+    save();
+    renderGameLimit();
+    renderBoard();
+  });
 
-function renderRoundInputs() {
-  const div = document.getElementById("roundInputs");
-  div.innerHTML = players.map(p => `
-    <div class="player-row">
-      <div style="flex:1">${p.name}</div>
-      <input id="score_${p.id}" type="number" placeholder="Score">
-      <input id="call_${p.id}" class="yahnev-radio" type="radio" name="caller">
-    </div>
-  `).join("");
-}
+  themeToggle.addEventListener('change', ()=>{
+    document.body.setAttribute('data-theme', themeToggle.checked ? 'dark' : 'light');
+    localStorage.setItem('yahnev_theme', themeToggle.checked ? 'dark' : 'light');
+  });
 
-function renderScores() {
-  const tbody = document.getElementById("scoreTable");
-  tbody.innerHTML = players.map(p => `
-    <tr>
-      <td>${p.name}</td>
-      <td>${p.total}</td>
-      <td>${"🔥".repeat(Math.min(p.streak,5))}${p.streak>5?" x"+p.streak:""}</td>
-    </tr>
-  `).join("");
-}
+  // Init
+  (function init(){
+    load();
+    renderPlayers();
+    renderRoundForm();
+    renderBoard();
+    renderLog();
+    renderGameLimit();
+    roundNumberEl.textContent = state.rounds.length;
 
-function renderLog() {
-  const log = document.getElementById("log");
-  log.innerHTML = rounds.map((r,i) => {
-    const lines = r.entries.map(e => {
-      const p = players.find(x => x.id === e.id);
-      return `• ${p.name}: +${e.raw}`;
-    }).join("<br/>");
-
-    return `<div class="log-item"><strong>Round ${i+1}</strong><br/>${lines}</div>`;
-  }).join("");
-}
+    const savedTheme = localStorage.getItem('yahnev_theme') || 'dark';
+    document.body.setAttribute('data-theme', savedTheme);
+    themeToggle.checked = savedTheme === 'dark';
+  })();
+})();
 </script>
-
 </body>
 </html>
-
