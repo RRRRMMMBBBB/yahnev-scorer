@@ -182,6 +182,39 @@
 
   .switch{display:flex; gap:4px; align-items:center}
 
+  /* round row: Name | Round score | Total */
+  .round-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    align-items:center;
+  }
+  .round-name{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    min-width:120px;
+    flex:1 1 auto;
+  }
+  .round-radio{
+    display:flex;
+    align-items:center;
+    gap:3px;
+    font-size:11px;
+    color:var(--muted);
+  }
+  .round-radio input{
+    margin:0;
+  }
+  .round-score{
+    flex:0 0 90px;
+  }
+  .round-total{
+    font-size:12px;
+    color:var(--muted);
+    white-space:nowrap;
+  }
+
   /* Fire rain animation */
   .fire-rain{
     position:fixed;
@@ -255,8 +288,8 @@
       <div class="divider"></div>
 
       <p class="muted small">
-        Enter each player’s round score and tick who <strong>called Yahnev</strong>.
-        Caller who wins adds <strong>0</strong> points (unless Assaf applies).
+        Name, round score &amp; current total on one line. Tick who <strong>called Yahnev</strong>.
+        Yahnev caller who wins adds <strong>0</strong> points (unless Assaf applies).
       </p>
 
       <div id="roundFormArea" class="stack"></div>
@@ -385,14 +418,17 @@
 
     state.players.forEach(p=>{
       const wrapper = document.createElement('div');
-      wrapper.className = 'row';
+      wrapper.className = 'round-row';
       wrapper.innerHTML = `
-        <label class="small" style="min-width:120px">${p.name}</label>
-        <input type="number" step="1" inputmode="numeric" pattern="[0-9]*" placeholder="Round score" data-score="${p.id}" />
-        <label class="small" style="display:flex;align-items:center;gap:4px;">
-          <input type="radio" name="yaniv" value="${p.id}" />
-          <span>Called Yahnev</span>
-        </label>
+        <div class="round-name">
+          <span class="small">${p.name}</span>
+          <label class="round-radio">
+            <input type="radio" name="yaniv" value="${p.id}" />
+            <span>Yahnev</span>
+          </label>
+        </div>
+        <input class="round-score" type="number" step="1" inputmode="numeric" pattern="[0-9]*" placeholder="Score" data-score="${p.id}" />
+        <span class="round-total">Total: <strong class="tot">${p.total}</strong></span>
       `;
       roundFormArea.appendChild(wrapper);
     });
@@ -666,7 +702,9 @@
     if(!parsed.ok){ alert(parsed.error); return; }
     applyRound(parsed);
     clearRoundInputs();
-    renderBoard(); renderLog();
+    renderBoard();
+    renderLog();
+    renderRoundForm(); // update per-player totals next to score inputs
     roundNumberEl.textContent = state.rounds.length;
     undoBtn.disabled = state.rounds.length === 0;
   });
@@ -674,7 +712,9 @@
   undoBtn.addEventListener('click', ()=>{
     if(!state.rounds.length) return;
     undoLastRound();
-    renderBoard(); renderLog(); renderRoundForm();
+    renderBoard();
+    renderLog();
+    renderRoundForm();
     roundNumberEl.textContent = state.rounds.length;
     undoBtn.disabled = state.rounds.length === 0;
   });
@@ -684,7 +724,11 @@
     state.players = [];
     state.rounds = [];
     save();
-    renderPlayers(); renderBoard(); renderLog(); renderRoundForm(); renderGameLimit();
+    renderPlayers();
+    renderBoard();
+    renderLog();
+    renderRoundForm();
+    renderGameLimit();
     roundNumberEl.textContent = '0';
     undoBtn.disabled = true;
   });
