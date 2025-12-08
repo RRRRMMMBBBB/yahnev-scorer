@@ -29,10 +29,11 @@
     color:var(--ink);
     line-height:1.4;
     font-size:16px;
+    overflow-x:hidden; /* no horizontal scroll */
   }
 
   header{
-    padding:14px 12px;
+    padding:12px 14px;
     border-bottom:1px solid var(--border);
     position:sticky;
     top:0;
@@ -40,7 +41,7 @@
     z-index:10;
     display:flex;
     gap:8px;
-    align-items:flex-start;
+    align-items:center;
     justify-content:space-between;
   }
   h1{
@@ -48,28 +49,14 @@
     font-size:18px;
     letter-spacing:.3px;
   }
-  .header-right{
-    display:flex;
-    flex-wrap:wrap;
-    gap:6px;
-    justify-content:flex-end;
-  }
 
   .container{
-    max-width:1000px;
+    max-width:640px;
     margin:0 auto;
     padding:12px;
-    display:grid;
+    display:flex;
+    flex-direction:column;
     gap:12px;
-  }
-  .grid{
-    display:grid;
-    grid-template-columns:1fr;
-    gap:12px;
-  }
-  @media (min-width: 900px){
-    .container{padding:16px;}
-    .grid{grid-template-columns: 360px 1fr; gap:16px;}
   }
 
   .card{
@@ -81,6 +68,12 @@
   .card h2{
     margin:0 0 8px 0;
     font-size:16px;
+  }
+
+  .stack{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
   }
 
   .row{
@@ -137,43 +130,45 @@
     overflow:hidden;
     border-radius:10px;
     border:1px solid var(--border);
+    table-layout:fixed;  /* stops horizontal overflow */
   }
   .tbl th, .tbl td{
-    padding:8px 10px;
+    padding:6px 8px;
     text-align:left;
     border-bottom:1px solid var(--border);
     font-size:14px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
   }
-  .tbl th{
-    font-weight:600;
-    color:var(--muted);
-  }
+  .tbl th:nth-child(1),
+  .tbl td:nth-child(1){ width:8%; }
+  .tbl th:nth-child(2),
+  .tbl td:nth-child(2){ width:46%; }
+  .tbl th:nth-child(3),
+  .tbl td:nth-child(3){ width:22%; }
+  .tbl th:nth-child(4),
+  .tbl td:nth-child(4){ width:24%; }
 
   .pill{
     display:inline-flex;
     align-items:center;
-    gap:6px;
-    padding:4px 8px;
+    gap:4px;
+    padding:3px 7px;
     border-radius:999px;
-    font-size:12px;
+    font-size:11px;
     border:1px solid var(--border);
   }
   .pill.win{background:var(--win)}
   .muted{color:var(--muted)}
-  .stack{display:flex; flex-direction:column; gap:8px}
   .divider{height:1px; background:var(--border); margin:8px 0}
-  .right{margin-left:auto}
-  .badge{
-    font-size:11px;
-    padding:3px 6px;
-    border-radius:999px;
-    border:1px solid var(--border);
-    color:var(--muted);
-    white-space:nowrap;
-  }
+  .label{font-size:12px; color:var(--muted)}
+  .spacer{flex:1}
+  .small{font-size:12px}
   .tot{font-variant-numeric: tabular-nums}
+
   .log{
-    max-height:300px;
+    max-height:260px;
     overflow:auto;
     border:1px solid var(--border);
     border-radius:10px;
@@ -184,12 +179,8 @@
     font-size:13px;
   }
   .log-item:last-child{border-bottom:none}
-  .flex{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
-  .label{font-size:12px; color:var(--muted)}
-  .spacer{flex:1}
-  .small{font-size:12px}
+
   .switch{display:flex; gap:4px; align-items:center}
-  .note{font-size:12px; color:var(--muted)}
 
   /* Fire rain animation */
   .fire-rain{
@@ -211,32 +202,16 @@
     100%{transform:translate3d(0,110vh,0);opacity:0}
   }
 
-  /* Mobile optimisations */
+  /* Mobile tweaks */
   @media (max-width: 600px){
     header{
-      padding:10px 10px;
-      flex-direction:column;
-      align-items:flex-start;
-      gap:6px;
+      padding:10px 12px;
     }
-    h1{
-      font-size:17px;
-    }
-    .header-right{
-      justify-content:flex-start;
-    }
-    .card{
-      padding:12px;
-    }
-    .row{
-      gap:6px;
-    }
+    h1{font-size:17px;}
+    .card{padding:12px;}
     button,
     input[type="text"],
-    input[type="number"]{
-      font-size:15px;
-    }
-    /* Make primary actions easy to hit */
+    input[type="number"]{font-size:15px;}
     #submitRoundBtn,
     #undoBtn,
     #resetBtn,
@@ -254,85 +229,77 @@
 <body data-theme="dark">
   <header>
     <h1>Yahnev Scoring</h1>
-    <div class="header-right">
-      <span class="badge">Game total: <span id="gameLimitDisplay">100</span></span>
-      <span class="badge">Exact: 50 / 100 / 150 / 200 ⇒ –50</span>
-      <span class="badge">Streak 3+ ⇒ –10</span>
-      <span class="badge">Assaf: Yahnev caller +25 if any opponent ≤ caller</span>
-      <div class="switch">
-        <span class="small muted">Light</span>
-        <label class="switch">
-          <input id="themeToggle" type="checkbox" />
-          <span class="small muted">Dark</span>
-        </label>
-      </div>
+    <div class="switch">
+      <span class="small muted">Light</span>
+      <label class="switch">
+        <input id="themeToggle" type="checkbox" />
+        <span class="small muted">Dark</span>
+      </label>
     </div>
   </header>
 
-  <div class="container grid">
-    <!-- Left: Add round (top) + players -->
-    <section class="stack">
-      <div class="card" id="roundCard">
-        <h2>Add Round</h2>
-        <p class="muted small">
-          Enter each player’s round score and tick who <strong>called Yahnev</strong>.
-          Assaf (+25) applies if an opponent has an equal or lower score than the caller.
-        </p>
-        <div id="roundFormArea" class="stack"></div>
-        <div class="divider"></div>
-        <div class="row">
-          <button id="submitRoundBtn" class="primary">Add Round</button>
-          <button id="undoBtn">Undo Last</button>
-          <span class="spacer"></span>
-          <span class="label">Round: <strong id="roundNumber">0</strong></span>
-        </div>
-        <p class="note">
-          Assaf: caller gets +25 and the win moves to the opponent with the lowest ≤ score.
-          Streak and exact-total bonuses apply after that.
-        </p>
-      </div>
+  <div class="container">
+    <!-- TOP: Scores + Add Round in one card -->
+    <section class="card">
+      <h2>Scores &amp; Round</h2>
 
-      <div class="card">
-        <h2>Players</h2>
+      <table class="tbl" id="board">
+        <thead>
+          <tr>
+            <th>#</th><th>Player</th><th>Total</th><th>Streak</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
 
-        <div class="row small">
-          <span class="label">Game total:</span>
-          <button type="button" class="ghost small limit-btn" data-limit="50">50</button>
-          <button type="button" class="ghost small limit-btn" data-limit="100">100</button>
-          <button type="button" class="ghost small limit-btn" data-limit="150">150</button>
-          <button type="button" class="ghost small limit-btn" data-limit="200">200</button>
-        </div>
+      <div class="divider"></div>
 
-        <div class="divider"></div>
+      <p class="muted small">
+        Enter each player’s round score and tick who <strong>called Yahnev</strong>.
+        Caller who wins adds <strong>0</strong> points (unless Assaf applies).
+      </p>
 
-        <div class="row">
-          <input id="playerName" type="text" placeholder="Add player name (max 6)" />
-          <button id="addPlayerBtn" class="primary">Add</button>
-          <button id="resetBtn" class="danger right">Reset Game</button>
-        </div>
-        <div class="divider"></div>
-        <div id="playersList" class="stack"></div>
+      <div id="roundFormArea" class="stack"></div>
+
+      <div class="divider"></div>
+
+      <div class="row">
+        <button id="submitRoundBtn" class="primary">Add Round</button>
+        <button id="undoBtn">Undo Last</button>
+        <span class="spacer"></span>
+        <span class="label">Round: <strong id="roundNumber">0</strong></span>
       </div>
     </section>
 
-    <!-- Right: Leaderboard + log -->
-    <section class="stack">
-      <div class="card">
-        <h2>Leaderboard</h2>
-        <table class="tbl" id="board">
-          <thead>
-            <tr>
-              <th>#</th><th>Player</th><th>Total</th><th>Streak</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+    <!-- Players + game settings -->
+    <section class="card">
+      <h2>Players</h2>
+
+      <div class="row small">
+        <span class="label">Game total:</span>
+        <button type="button" class="ghost small limit-btn" data-limit="50">50</button>
+        <button type="button" class="ghost small limit-btn" data-limit="100">100</button>
+        <button type="button" class="ghost small limit-btn" data-limit="150">150</button>
+        <button type="button" class="ghost small limit-btn" data-limit="200">200</button>
       </div>
 
-      <div class="card">
-        <h2>Round Log</h2>
-        <div id="log" class="log small"></div>
+      <div class="divider"></div>
+
+      <div class="row">
+        <input id="playerName" type="text" placeholder="Add player name (max 6)" />
+        <button id="addPlayerBtn" class="primary">Add</button>
+        <button id="resetBtn" class="danger">Reset Game</button>
       </div>
+
+      <div class="divider"></div>
+
+      <div id="playersList" class="stack"></div>
+    </section>
+
+    <!-- Log at the bottom -->
+    <section class="card">
+      <h2>Round Log</h2>
+      <div id="log" class="log small"></div>
     </section>
   </div>
 
@@ -422,7 +389,7 @@
       wrapper.innerHTML = `
         <label class="small" style="min-width:120px">${p.name}</label>
         <input type="number" step="1" inputmode="numeric" pattern="[0-9]*" placeholder="Round score" data-score="${p.id}" />
-        <label class="small flex">
+        <label class="small" style="display:flex;align-items:center;gap:4px;">
           <input type="radio" name="yaniv" value="${p.id}" />
           <span>Called Yahnev</span>
         </label>
@@ -432,8 +399,6 @@
   }
 
   function renderGameLimit(){
-    const display = el('#gameLimitDisplay');
-    if(display) display.textContent = state.gameLimit;
     document.querySelectorAll('.limit-btn').forEach(btn=>{
       const val = Number(btn.dataset.limit);
       if(val === state.gameLimit){
@@ -537,7 +502,6 @@
   }
 
   function resolveRound(entries, yanivCallerId){
-    // Always a caller in your rules
     const caller = entries.find(e=>e.id===yanivCallerId);
     if(!caller) return { entries, assaf: null, yanivCallerId };
 
@@ -580,7 +544,13 @@
   function applyRound(parsed){
     const { entries: rawEntries, yanivCallerId } = parsed;
 
-    const { entries, assaf, yanivCallerId: storedYaniv } = resolveRound(rawEntries, yanivCallerId);
+    const {
+      entries,
+      assaf,
+      yanivCallerId: storedYaniv
+    } = resolveRound(rawEntries, yanivCallerId);
+
+    const callerId = storedYaniv;
     const roundRecord = { entries: [], yanivCallerId: storedYaniv };
 
     const newStreaks = {};
@@ -601,38 +571,48 @@
       let appliedExactBonus = 0;
       let wasAssafCaller = false;
       let wonViaAssaf = false;
+      const wonThisRound = !!entry.won;
 
       if(assaf){
         if(assaf.caller === p.id) wasAssafCaller = true;
         if(assaf.winner === p.id && assaf.caller) wonViaAssaf = true;
       }
 
+      // Base score before streak/exact bonuses
+      let baseScore = entry.raw;
+      const isWinningCaller = (p.id === callerId && wonThisRound && !wonViaAssaf);
+      if(isWinningCaller){
+        baseScore = 0; // Yahnev caller who wins adds 0 points
+      }
+
       // Streak bonus
-      if(newStreaks[p.id] >= STREAK_BONUS_THRESHOLD){
+      if(newStreaks[p.id] >= STREAK_BONUS_THRESHOLD && wonThisRound){
         appliedStreakBonus = STREAK_BONUS_PER_ROUND;
       }
 
       // Apply to total
-      p.total += entry.raw + appliedStreakBonus;
+      p.total += baseScore + appliedStreakBonus;
 
-      // Exact totals
+      // Exact totals bonus
       if(EXACT_TOTALS.has(p.total)){
         appliedExactBonus = EXACT_BONUS;
         p.total += EXACT_BONUS;
       }
 
-      // Did a streak just cross the threshold this round?
-      if(entry.won && prevStreaks[p.id] < STREAK_BONUS_THRESHOLD && newStreaks[p.id] >= STREAK_BONUS_THRESHOLD){
+      // New streak crossing threshold triggers fire
+      if(wonThisRound &&
+         prevStreaks[p.id] < STREAK_BONUS_THRESHOLD &&
+         newStreaks[p.id] >= STREAK_BONUS_THRESHOLD){
         fireRainNeeded = true;
       }
 
       p.streak = newStreaks[p.id];
-      p.lastWon = !!entry.won;
+      p.lastWon = wonThisRound;
 
       roundRecord.entries.push({
         id: p.id,
-        raw: entry.raw,
-        won: entry.won,
+        raw: baseScore,
+        won: wonThisRound,
         appliedStreakBonus: appliedStreakBonus !== 0,
         appliedExactBonus: appliedExactBonus !== 0,
         assafCaller: wasAssafCaller,
@@ -703,7 +683,6 @@
     if(!confirm('Reset the entire game? Players, rounds, and scores will be cleared.')) return;
     state.players = [];
     state.rounds = [];
-    // keep gameLimit as-is
     save();
     renderPlayers(); renderBoard(); renderLog(); renderRoundForm(); renderGameLimit();
     roundNumberEl.textContent = '0';
