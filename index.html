@@ -28,7 +28,7 @@
     color:var(--ink);
     line-height:1.4;
     font-size:16px;
-    overflow-x:hidden; /* no horizontal scroll */
+    overflow-x:hidden;
   }
 
   header{
@@ -101,11 +101,6 @@
     cursor:pointer;
     font-size:14px;
   }
-  button.primary see{
-    background:var(--accent-2);
-    border-color:transparent;
-    color:white;
-  }
   button.primary{
     background:var(--accent-2);
     border-color:transparent;
@@ -125,7 +120,7 @@
     overflow:hidden;
     border-radius:10px;
     border:1px solid var(--border);
-    table-layout:fixed; /* prevents overflow */
+    table-layout:fixed;
   }
   .tbl th, .tbl td{
     padding:6px 8px;
@@ -196,7 +191,7 @@
     white-space:nowrap;
   }
 
-  /* Fire rain (streak threshold) */
+  /* Fire rain */
   .fire-rain{
     position:fixed; inset:0;
     pointer-events:none;
@@ -276,7 +271,7 @@
     h1{font-size:17px}
     .card{padding:12px}
     button, input[type="text"], input[type="number"]{font-size:15px}
-    #submitRoundBtn, #undoBtn, #resetBtn, #newGameBtn, #addPlayerBtn{flex:1 0 45%}
+    #submitRoundBtn, #undoBtn, #resetBtn, #newGameBtn, #addPlayerBtn, #addLateBtn{flex:1 0 45%}
     .limit-btn{flex:1 0 20%; text-align:center; justify-content:center}
   }
 </style>
@@ -300,7 +295,7 @@
       <div class="row" style="align-items:flex-end;">
         <div>
           <h2 style="margin:0;">Scores &amp; Round</h2>
-          <div class="small muted">Caller wins = 0 points (unless Assaf). Streak 3+ = –10. Exact 50/100/150/200 = –50.</div>
+          <div class="small muted">Caller wins = 0 (unless Assaf). Streak 3+ = –10. Exact 50/100/150/200 = –50 (only when score increases).</div>
         </div>
         <span class="spacer"></span>
         <div class="small muted" id="tallyInline"></div>
@@ -341,7 +336,7 @@
       </div>
       <div class="divider"></div>
       <div id="winsList" class="stack small"></div>
-      <div class="small muted">Wins are tracked by player name across games (even if you reset/new-game).</div>
+      <div class="small muted">Wins are tracked by player name across games.</div>
     </section>
 
     <!-- Players -->
@@ -361,7 +356,12 @@
       <div class="row">
         <input id="playerName" type="text" placeholder="Add player name (max 6)" />
         <button id="addPlayerBtn" class="primary">Add</button>
+        <button id="addLateBtn">Add Late Entrant</button>
         <button id="resetBtn" class="danger">Reset Everything</button>
+      </div>
+
+      <div class="small muted" style="margin-top:6px;">
+        Late entrant joins on a random total between current lowest and highest.
       </div>
 
       <div class="divider"></div>
@@ -380,18 +380,19 @@
 (function(){
   const MAX_PLAYERS = 6;
 
-  const STREAK_BONUS_THRESHOLD = 3;    // 3+ wins in a row
-  const STREAK_BONUS_PER_ROUND = -10;  // applied each streak round
+  const STREAK_BONUS_THRESHOLD = 3;
+  const STREAK_BONUS_PER_ROUND = -10;
 
   const EXACT_TOTALS = new Set([50,100,150,200]);
   const EXACT_BONUS = -50;
 
-  const ASSAF_PENALTY = 25;            // +25 to caller on Assaf
+  const ASSAF_PENALTY = 25;
 
   const el = (sel) => document.querySelector(sel);
 
   const playersList = el('#playersList');
   const addPlayerBtn = el('#addPlayerBtn');
+  const addLateBtn = el('#addLateBtn');
   const playerNameInput = el('#playerName');
 
   const boardBody = el('#board tbody');
@@ -419,11 +420,11 @@
     gameLimit: 100
   };
 
-  // Cross-game tally (tracked by NAME)
+  // Cross-game tally (by NAME)
   const tally = {
     gamesPlayed: 0,
     lastWinner: null,
-    winsByName: {} // { "Richard": 3, "Matt": 1 }
+    winsByName: {}
   };
 
   function save(){
@@ -476,7 +477,6 @@
       });
     }
 
-    // Inline view in top card
     tallyInlineEl.textContent = `Games: ${tally.gamesPlayed}`;
   }
 
@@ -501,7 +501,9 @@
       });
     });
 
-    addPlayerBtn.disabled = state.players.length >= MAX_PLAYERS;
+    const full = state.players.length >= MAX_PLAYERS;
+    addPlayerBtn.disabled = full;
+    addLateBtn.disabled = full;
   }
 
   function renderRoundForm(){
@@ -610,13 +612,34 @@
     logEl.scrollTop = logEl.scrollHeight;
   }
 
-  function addPlayer(name){
+  function addPlayerWithTotal(name, startingTotal){
     if(!name) return;
     if(state.players.length >= MAX_PLAYERS) return;
+
     const id = crypto.randomUUID();
-    state.players.push({ id, name: name.trim(), total: 0, streak: 0, lastWon: false });
+    state.players.push({ id, name: name.trim(), total: startingTotal, streak: 0, lastWon: false });
     save();
-    renderPlayers(); renderRoundForm(); renderBoard();
+    renderPlayers();
+    renderRoundForm();
+    renderBoard();
+  }
+
+  function addPlayerNormal(name){
+    addPlayerWithTotal(name, 0);
+  }
+
+  function addLateEntrant(name){
+    if(state.players.length === 0){
+      // if nobody exists yet, late entrant is same as normal
+      addPlayerWithTotal(name, 0);
+      return;
+    }
+    const totals = state.players.map(p => p.total);
+    const min = Math.min(...totals);
+    const max = Math.max(...totals);
+    const start = randomIntInclusive(min, max);
+    addPlayerWithTotal(name, start);
+    alert(`${name} joined late on ${start} points.`);
   }
 
   function removePlayer(id){
@@ -710,7 +733,6 @@
   }
 
   function triggerExactStrobe(name, fromTotal, toTotal){
-    // strobe (visual only) + big score overlay dissolve
     const overlay = document.createElement('div');
     overlay.className = 'score-overlay';
     overlay.innerHTML = `<div class="score-text">${name}: ${fromTotal} → ${toTotal}</div>`;
@@ -734,13 +756,11 @@
     const anyOut = state.players.some(p=> p.total >= limit);
     if(!anyOut) return false;
 
-    // Winner = lowest total (standard low-score wins)
     const sorted = [...state.players].sort((a,b)=> a.total - b.total);
     const winner = sorted[0];
 
     tally.gamesPlayed += 1;
     tally.lastWinner = winner.name;
-
     tally.winsByName[winner.name] = (tally.winsByName[winner.name] || 0) + 1;
 
     save();
@@ -751,14 +771,10 @@
   }
 
   function newGameKeepPlayers(){
-    // Reset scores/rounds but keep same players + names
     state.players = state.players.map(p=>({ ...p, total:0, streak:0, lastWon:false }));
     state.rounds = [];
     save();
-    renderBoard();
-    renderLog();
-    renderRoundForm();
-    renderPlayers();
+    renderBoard(); renderLog(); renderRoundForm(); renderPlayers();
     roundNumberEl.textContent = '0';
     undoBtn.disabled = true;
   }
@@ -769,7 +785,6 @@
     const names = state.players.map(p=>({id:p.id, name:p.name}));
     const rounds = [...state.rounds];
 
-    // rebuild from scratch to guarantee correctness
     state.players = names.map(n=>({ id:n.id, name:n.name, total:0, streak:0, lastWon:false }));
     state.rounds = [];
 
@@ -781,6 +796,7 @@
     save();
   }
 
+  // ✅ FIXED: exact bonus only triggers when score increased this round and lands exactly on increment
   function applyRound(parsed, silentAnimations=false){
     const { entries: rawEntries, yanivCallerId } = parsed;
 
@@ -793,14 +809,13 @@
     const prevStreaks = {};
     let fireRainNeeded = false;
 
-    // Compute new streaks
+    // compute streaks
     state.players.forEach(p=>{
       const won = entries.find(e=>e.id===p.id)?.won || false;
       prevStreaks[p.id] = p.streak;
       newStreaks[p.id] = won ? p.streak + 1 : 0;
     });
 
-    // Apply scoring
     state.players.forEach(p=>{
       const entry = entries.find(e=>e.id===p.id);
 
@@ -816,36 +831,40 @@
         if(assaf.winner === p.id && assaf.caller) wonViaAssaf = true;
       }
 
-      // Base score (caller win = 0)
+      // base score (caller win = 0)
       let baseScore = entry.raw;
       const isWinningCaller = (p.id === callerId && wonThisRound && !wonViaAssaf);
       if(isWinningCaller) baseScore = 0;
 
-      // Streak bonus
+      // streak bonus
       if(newStreaks[p.id] >= STREAK_BONUS_THRESHOLD && wonThisRound){
         appliedStreakBonus = STREAK_BONUS_PER_ROUND;
       }
 
-      // Add to total
-      p.total += baseScore + appliedStreakBonus;
+      const before = p.total;
+      const delta = baseScore + appliedStreakBonus;
 
-      // 69 easter egg (exact landing)
+      // apply delta
+      p.total += delta;
+
+      // 69 easter egg (landing exactly on 69 after applying delta)
       if(!silentAnimations && p.total === 69){
         triggerEggplant69();
       }
 
-      // Exact totals bonus: when total hits 50/100/150/200, subtract 50 + animation
-      if(EXACT_TOTALS.has(p.total)){
-        const before = p.total;
-        p.total += EXACT_BONUS;
-        appliedExactBonus = EXACT_BONUS;
+      // ✅ exact totals bonus ONLY if you increased your score this round
+      // i.e. delta must be > 0 AND after adding you land on 50/100/150/200
+      if(delta > 0 && EXACT_TOTALS.has(p.total)){
+        const hit = p.total;       // the exact total you hit
+        p.total += EXACT_BONUS;    // apply -50
+        appliedExactBonus = true;
 
         if(!silentAnimations){
-          triggerExactStrobe(p.name, before, p.total);
+          triggerExactStrobe(p.name, hit, p.total);
         }
       }
 
-      // Fire rain on crossing streak threshold
+      // fire rain when crossing streak threshold
       if(wonThisRound && prevStreaks[p.id] < STREAK_BONUS_THRESHOLD && newStreaks[p.id] >= STREAK_BONUS_THRESHOLD){
         fireRainNeeded = true;
       }
@@ -858,7 +877,7 @@
         raw: baseScore,
         won: wonThisRound,
         appliedStreakBonus: appliedStreakBonus !== 0,
-        appliedExactBonus: appliedExactBonus !== 0,
+        appliedExactBonus: !!appliedExactBonus,
         assafCaller: wasAssafCaller,
         assafAgainst: wonViaAssaf
       });
@@ -871,14 +890,34 @@
     }
   }
 
+  function randomIntInclusive(min, max){
+    if(min > max) [min, max] = [max, min];
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
   // Events
   addPlayerBtn.addEventListener('click', ()=>{
     const name = playerNameInput.value.trim();
     if(!name) return;
-    addPlayer(name);
+    addPlayerNormal(name);
     playerNameInput.value = '';
     playerNameInput.focus();
-    renderTally(); // keep tally view fresh (wins by name unaffected)
+    renderTally();
+  });
+
+  addLateBtn.addEventListener('click', ()=>{
+    const name = playerNameInput.value.trim();
+    if(!name) return;
+
+    if(state.rounds.length === 0 && state.players.length === 0){
+      addPlayerNormal(name);
+    } else {
+      // late entrant mid-game
+      addLateEntrant(name);
+    }
+
+    playerNameInput.value = '';
+    playerNameInput.focus();
   });
 
   playerNameInput.addEventListener('keydown', (e)=>{
@@ -896,24 +935,18 @@
     clearRoundInputs();
     renderBoard();
     renderLog();
-    renderRoundForm(); // refresh per-line totals
+    renderRoundForm();
     renderPlayers();
     roundNumberEl.textContent = state.rounds.length;
     undoBtn.disabled = state.rounds.length === 0;
 
-    // Check game over AFTER applying scoring
-    if(checkGameOverAndRecordWinner()){
-      // Do nothing else—user taps New Game when ready
-    }
+    checkGameOverAndRecordWinner();
   });
 
   undoBtn.addEventListener('click', ()=>{
     if(!state.rounds.length) return;
     undoLastRound();
-    renderBoard();
-    renderLog();
-    renderRoundForm();
-    renderPlayers();
+    renderBoard(); renderLog(); renderRoundForm(); renderPlayers();
     roundNumberEl.textContent = state.rounds.length;
     undoBtn.disabled = state.rounds.length === 0;
   });
@@ -929,6 +962,7 @@
 
   resetBtn.addEventListener('click', ()=>{
     if(!confirm('Reset EVERYTHING?\nThis clears players, scores, rounds, AND tallies.')) return;
+
     state.players = [];
     state.rounds = [];
     state.gameLimit = 100;
@@ -938,12 +972,7 @@
     tally.winsByName = {};
 
     save();
-    renderPlayers();
-    renderBoard();
-    renderLog();
-    renderRoundForm();
-    renderGameLimit();
-    renderTally();
+    renderPlayers(); renderBoard(); renderLog(); renderRoundForm(); renderGameLimit(); renderTally();
     roundNumberEl.textContent = '0';
     undoBtn.disabled = true;
   });
