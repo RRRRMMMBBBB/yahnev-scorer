@@ -5,8 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Yahnev Scorer</title>
 <style>
-  html, body { margin: 0; padding: 0; }
-  #root { min-height: 100vh; }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; width: 100%; }
+  #root { min-height: 100vh; width: 100%; }
 </style>
 </head>
 <body>
@@ -213,6 +214,8 @@ const STYLE = `
     .yhv-flame-particle, .yhv-eggplant-particle { animation: none !important; filter: none !important; }
   }
 
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body, #root { width: 100%; }
   .flex { display: flex; }
   .flex-1 { flex: 1 1 0%; }
   .flex-col { flex-direction: column; }
