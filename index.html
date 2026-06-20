@@ -2,1016 +2,774 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Yahnev Scoring</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Yahnev Scorer</title>
 <style>
-  :root {
-    --bg: #0b0c10;
-    --card: #15171e;
-    --ink: #e6e8ef;
-    --muted: #9aa3b2;
-    --accent-2: #60a5fa;
-    --danger: #f87171;
-    --win: #fde68a;
-    --border: #232632;
-  }
-  [data-theme="light"]{
-    --bg: #f7f8fb; --card:#ffffff; --ink:#0b0c10; --muted:#545b68;
-    --accent-2:#2563eb; --danger:#b91c1c; --win:#f59e0b22; --border:#e6e8ef;
-  }
-  *{box-sizing:border-box}
-
-  body{
-    margin:0;
-    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
-    background:var(--bg);
-    color:var(--ink);
-    line-height:1.4;
-    font-size:16px;
-    overflow-x:hidden;
-  }
-
-  header{
-    padding:12px 14px;
-    border-bottom:1px solid var(--border);
-    position:sticky;
-    top:0;
-    background:var(--bg);
-    z-index:10;
-    display:flex;
-    gap:8px;
-    align-items:center;
-    justify-content:space-between;
-  }
-  h1{
-    margin:0;
-    font-size:18px;
-    letter-spacing:.3px;
-  }
-
-  .container{
-    max-width:640px;
-    margin:0 auto;
-    padding:12px;
-    display:flex;
-    flex-direction:column;
-    gap:12px;
-  }
-
-  .card{
-    background:var(--card);
-    border:1px solid var(--border);
-    border-radius:12px;
-    padding:14px;
-  }
-  .card h2{
-    margin:0 0 8px 0;
-    font-size:16px;
-  }
-
-  .stack{display:flex; flex-direction:column; gap:8px}
-  .row{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
-  .divider{height:1px; background:var(--border); margin:8px 0}
-  .muted{color:var(--muted)}
-  .label{font-size:12px; color:var(--muted)}
-  .small{font-size:12px}
-  .spacer{flex:1}
-  .tot{font-variant-numeric: tabular-nums}
-
-  input[type="text"],
-  input[type="number"]{
-    background:transparent;
-    border:1px solid var(--border);
-    color:var(--ink);
-    padding:10px 12px;
-    border-radius:10px;
-    outline:none;
-    width:100%;
-    font-size:15px;
-  }
-  input[type="number"]{max-width:120px}
-
-  button{
-    appearance:none;
-    border:1px solid var(--border);
-    background:transparent;
-    color:var(--ink);
-    padding:10px 12px;
-    border-radius:10px;
-    cursor:pointer;
-    font-size:14px;
-  }
-  button.primary{
-    background:var(--accent-2);
-    border-color:transparent;
-    color:white;
-  }
-  button.ghost{background:transparent}
-  button.danger{
-    background:transparent;
-    border-color:var(--danger);
-    color:var(--danger);
-  }
-  button:disabled{opacity:.5; cursor:not-allowed}
-
-  .tbl{
-    width:100%;
-    border-collapse:collapse;
-    overflow:hidden;
-    border-radius:10px;
-    border:1px solid var(--border);
-    table-layout:fixed;
-  }
-  .tbl th, .tbl td{
-    padding:6px 8px;
-    text-align:left;
-    border-bottom:1px solid var(--border);
-    font-size:14px;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
-  .tbl th:nth-child(1), .tbl td:nth-child(1){ width:8%; }
-  .tbl th:nth-child(2), .tbl td:nth-child(2){ width:46%; }
-  .tbl th:nth-child(3), .tbl td:nth-child(3){ width:22%; }
-  .tbl th:nth-child(4), .tbl td:nth-child(4){ width:24%; }
-
-  .pill{
-    display:inline-flex;
-    align-items:center;
-    gap:4px;
-    padding:3px 7px;
-    border-radius:999px;
-    font-size:11px;
-    border:1px solid var(--border);
-  }
-  .pill.win{background:var(--win)}
-
-  .log{
-    max-height:260px;
-    overflow:auto;
-    border:1px solid var(--border);
-    border-radius:10px;
-  }
-  .log-item{
-    padding:8px 10px;
-    border-bottom:1px solid var(--border);
-    font-size:13px;
-  }
-  .log-item:last-child{border-bottom:none}
-
-  .switch{display:flex; gap:4px; align-items:center}
-
-  /* Round rows: Name | Yahnev | Round score | Total */
-  .round-row{
-    display:flex;
-    flex-wrap:wrap;
-    gap:6px;
-    align-items:center;
-  }
-  .round-name{
-    display:flex;
-    align-items:center;
-    gap:6px;
-    min-width:120px;
-    flex:1 1 auto;
-  }
-  .round-radio{
-    display:flex;
-    align-items:center;
-    gap:3px;
-    font-size:11px;
-    color:var(--muted);
-  }
-  .round-radio input{margin:0}
-  .round-score{flex:0 0 90px}
-  .round-total{
-    font-size:12px;
-    color:var(--muted);
-    white-space:nowrap;
-  }
-
-  /* Fire rain */
-  .fire-rain{
-    position:fixed; inset:0;
-    pointer-events:none;
-    z-index:9999;
-    overflow:hidden;
-  }
-  .fire-emoji{
-    position:absolute;
-    animation:fire-fall 1.6s linear forwards;
-    opacity:0.9;
-  }
-  @keyframes fire-fall{
-    0%{transform:translate3d(0,-50px,0);opacity:0}
-    10%{opacity:1}
-    100%{transform:translate3d(0,110vh,0);opacity:0}
-  }
-
-  /* 🍆 takeover (score == 69) */
-  .eggplant-layer{
-    position:fixed; inset:0;
-    pointer-events:none;
-    z-index:9999;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    overflow:hidden;
-    background:transparent;
-  }
-  .eggplant{
-    position:absolute;
-    font-size:28px;
-    animation:egg-grow 1.4s ease-in forwards;
-    opacity:0.95;
-  }
-  @keyframes egg-grow{
-    0%{transform:translate3d(0,0,0) scale(1); opacity:0}
-    20%{opacity:1}
-    100%{transform:translate3d(0,0,0) scale(18); opacity:0}
-  }
-
-  /* Exact-total strobe + score overlay */
-  .strobe{
-    animation:strobe 120ms steps(1,end) infinite;
-  }
-  @keyframes strobe{
-    0%{filter:none}
-    50%{filter:invert(1) hue-rotate(180deg)}
-    100%{filter:none}
-  }
-
-  .score-overlay{
-    position:fixed;
-    inset:0;
-    z-index:9999;
-    pointer-events:none;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:rgba(0,0,0,.35);
-  }
-  .score-overlay .score-text{
-    font-size:min(18vw, 120px);
-    font-weight:800;
-    letter-spacing:2px;
-    text-shadow:0 10px 30px rgba(0,0,0,.6);
-    animation:pixel-dissolve 1.6s steps(10,end) forwards;
-  }
-  @keyframes pixel-dissolve{
-    0%{opacity:0; transform:scale(.95); filter:blur(0px)}
-    10%{opacity:1; transform:scale(1.02)}
-    55%{opacity:1; filter:blur(0px)}
-    100%{opacity:0; transform:scale(1.08); filter:blur(10px)}
-  }
-
-  @media (max-width: 600px){
-    header{padding:10px 12px}
-    h1{font-size:17px}
-    .card{padding:12px}
-    button, input[type="text"], input[type="number"]{font-size:15px}
-    #submitRoundBtn, #undoBtn, #resetBtn, #newGameBtn, #addPlayerBtn, #addLateBtn{flex:1 0 45%}
-    .limit-btn{flex:1 0 20%; text-align:center; justify-content:center}
-  }
+  html, body { margin: 0; padding: 0; }
+  #root { min-height: 100vh; }
 </style>
 </head>
-
-<body data-theme="dark">
-  <header>
-    <h1>Yahnev Scoring</h1>
-    <div class="switch">
-      <span class="small muted">Light</span>
-      <label class="switch">
-        <input id="themeToggle" type="checkbox" />
-        <span class="small muted">Dark</span>
-      </label>
-    </div>
-  </header>
-
-  <div class="container">
-    <!-- TOP: Scores + Round -->
-    <section class="card">
-      <div class="row" style="align-items:flex-end;">
-        <div>
-          <h2 style="margin:0;">Scores &amp; Round</h2>
-          <div class="small muted">Caller wins = 0 (unless Assaf). Streak 3+ = –10. Exact 50/100/150/200 = –50 (only when score increases).</div>
-        </div>
-        <span class="spacer"></span>
-        <div class="small muted" id="tallyInline"></div>
-      </div>
-
-      <div class="divider"></div>
-
-      <table class="tbl" id="board">
-        <thead>
-          <tr>
-            <th>#</th><th>Player</th><th>Total</th><th>Streak</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-
-      <div class="divider"></div>
-
-      <div id="roundFormArea" class="stack"></div>
-
-      <div class="divider"></div>
-
-      <div class="row">
-        <button id="submitRoundBtn" class="primary">Add Round</button>
-        <button id="undoBtn">Undo Last</button>
-        <button id="newGameBtn">New Game</button>
-        <span class="spacer"></span>
-        <span class="label">Round: <strong id="roundNumber">0</strong></span>
-      </div>
-    </section>
-
-    <!-- Game tally -->
-    <section class="card">
-      <h2>Game Tally</h2>
-      <div class="row small">
-        <span class="pill">Games played: <strong id="gamesPlayed" class="tot">0</strong></span>
-        <span class="pill">Last winner: <strong id="lastWinner">—</strong></span>
-      </div>
-      <div class="divider"></div>
-      <div id="winsList" class="stack small"></div>
-      <div class="small muted">Wins are tracked by player name across games.</div>
-    </section>
-
-    <!-- Players -->
-    <section class="card">
-      <h2>Players</h2>
-
-      <div class="row small">
-        <span class="label">Game total:</span>
-        <button type="button" class="ghost small limit-btn" data-limit="50">50</button>
-        <button type="button" class="ghost small limit-btn" data-limit="100">100</button>
-        <button type="button" class="ghost small limit-btn" data-limit="150">150</button>
-        <button type="button" class="ghost small limit-btn" data-limit="200">200</button>
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="row">
-        <input id="playerName" type="text" placeholder="Add player name (max 6)" />
-        <button id="addPlayerBtn" class="primary">Add</button>
-        <button id="addLateBtn">Add Late Entrant</button>
-        <button id="resetBtn" class="danger">Reset Everything</button>
-      </div>
-
-      <div class="small muted" style="margin-top:6px;">
-        Late entrant joins on a random total between current lowest and highest.
-      </div>
-
-      <div class="divider"></div>
-
-      <div id="playersList" class="stack"></div>
-    </section>
-
-    <!-- Log -->
-    <section class="card">
-      <h2>Round Log</h2>
-      <div id="log" class="log small"></div>
-    </section>
-  </div>
-
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script>
-(function(){
-  const MAX_PLAYERS = 6;
-
-  const STREAK_BONUS_THRESHOLD = 3;
-  const STREAK_BONUS_PER_ROUND = -10;
-
-  const EXACT_TOTALS = new Set([50,100,150,200]);
-  const EXACT_BONUS = -50;
-
-  const ASSAF_PENALTY = 25;
-
-  const el = (sel) => document.querySelector(sel);
-
-  const playersList = el('#playersList');
-  const addPlayerBtn = el('#addPlayerBtn');
-  const addLateBtn = el('#addLateBtn');
-  const playerNameInput = el('#playerName');
-
-  const boardBody = el('#board tbody');
-  const roundFormArea = el('#roundFormArea');
-
-  const submitRoundBtn = el('#submitRoundBtn');
-  const undoBtn = el('#undoBtn');
-  const newGameBtn = el('#newGameBtn');
-
-  const logEl = el('#log');
-  const roundNumberEl = el('#roundNumber');
-
-  const resetBtn = el('#resetBtn');
-  const themeToggle = el('#themeToggle');
-
-  const gamesPlayedEl = el('#gamesPlayed');
-  const lastWinnerEl = el('#lastWinner');
-  const winsListEl = el('#winsList');
-  const tallyInlineEl = el('#tallyInline');
-
-  // Per-game state
-  const state = {
-    players: [],   // {id, name, total, streak, lastWon}
-    rounds: [],
-    gameLimit: 100
+function IconChevronDown({ size = 16, color, style }) {
+  return /* @__PURE__ */ React.createElement("svg", { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color || "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", style }, /* @__PURE__ */ React.createElement("polyline", { points: "6 9 12 15 18 9" }));
+}
+function IconFlame({ size = 16, color, style }) {
+  return /* @__PURE__ */ React.createElement("svg", { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color || "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", style }, /* @__PURE__ */ React.createElement("path", { d: "M12 3c1.2 3-2.6 4.6-2.6 8.6a2.6 2.6 0 005.2 0c0-1.3-.7-2-1.3-2.6.1 1.1-.5 1.7-1.1 1.3.7-1.6 0-4-1-6.3-.7.9-1.5 1.6-2.4 2.2" }));
+}
+function IconTrophy({ size = 16, color, style }) {
+  return /* @__PURE__ */ React.createElement("svg", { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color || "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", style }, /* @__PURE__ */ React.createElement("path", { d: "M7 4h10v5a5 5 0 01-10 0V4z" }), /* @__PURE__ */ React.createElement("path", { d: "M5 4h2v2a2.5 2.5 0 01-2.5 2.5A2.5 2.5 0 012 6 2 2 0 015 4zM19 4h-2v2a2.5 2.5 0 002.5 2.5A2.5 2.5 0 0022 6a2 2 0 00-3-2z" }), /* @__PURE__ */ React.createElement("path", { d: "M9 17h6M12 14v6" }));
+}
+function IconX({ size = 16, color, style }) {
+  return /* @__PURE__ */ React.createElement("svg", { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color || "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", style }, /* @__PURE__ */ React.createElement("line", { x1: "5", y1: "5", x2: "19", y2: "19" }), /* @__PURE__ */ React.createElement("line", { x1: "19", y1: "5", x2: "5", y2: "19" }));
+}
+function IconTrash({ size = 16, color, style }) {
+  return /* @__PURE__ */ React.createElement("svg", { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color || "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", style }, /* @__PURE__ */ React.createElement("path", { d: "M4 7h16M9 7V4h6v3" }), /* @__PURE__ */ React.createElement("path", { d: "M6 7l1 13a2 2 0 002 2h6a2 2 0 002-2l1-13" }));
+}
+function IconUndo({ size = 16, color, style }) {
+  return /* @__PURE__ */ React.createElement("svg", { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color || "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", style }, /* @__PURE__ */ React.createElement("path", { d: "M3 11a8 8 0 1114-5" }), /* @__PURE__ */ React.createElement("polyline", { points: "3 4 3 11 10 11" }));
+}
+function IconUsers({ size = 16, color, style }) {
+  return /* @__PURE__ */ React.createElement("svg", { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color || "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", style }, /* @__PURE__ */ React.createElement("circle", { cx: "9", cy: "8", r: "3" }), /* @__PURE__ */ React.createElement("path", { d: "M3 20c0-3 2.7-5 6-5s6 2 6 5" }), /* @__PURE__ */ React.createElement("circle", { cx: "17", cy: "9", r: "2.3" }), /* @__PURE__ */ React.createElement("path", { d: "M14.5 20c.3-2 2-3.6 4-3.6" }));
+}
+function IconScroll({ size = 16, color, style }) {
+  return /* @__PURE__ */ React.createElement("svg", { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color || "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", style }, /* @__PURE__ */ React.createElement("rect", { x: "5", y: "3", width: "14", height: "18", rx: "2" }), /* @__PURE__ */ React.createElement("line", { x1: "8", y1: "8", x2: "16", y2: "8" }), /* @__PURE__ */ React.createElement("line", { x1: "8", y1: "12", x2: "16", y2: "12" }), /* @__PURE__ */ React.createElement("line", { x1: "8", y1: "16", x2: "13", y2: "16" }));
+}
+function IconGear({ size = 16, color, style }) {
+  return /* @__PURE__ */ React.createElement("svg", { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color || "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", style }, /* @__PURE__ */ React.createElement("circle", { cx: "12", cy: "12", r: "3" }), /* @__PURE__ */ React.createElement("path", { d: "M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" }));
+}
+const { useState, useEffect, useMemo } = React;
+const EXACT_TOTALS = [50, 100, 150, 200];
+const PRESET_LIMITS = [50, 100, 150, 200, 300];
+const DEFAULT_SETTINGS = { theme: "dark", defaultGameLimit: 100, animationsEnabled: true };
+const ACCENT = "#FF2E93";
+const ACCENT_ON = "#111111";
+const THEMES = {
+  light: { bg: "#FFFFFF", surface: "#F5F5F5", fg: "#111111", fgMuted: "#6E6E6E", border: "rgba(17,17,17,0.12)", borderStrong: "#111111" },
+  dark: { bg: "#0A0A0A", surface: "#161616", fg: "#F2F2F2", fgMuted: "#9A9A9A", border: "rgba(255,255,255,0.14)", borderStrong: "#F2F2F2" }
+};
+function makeId(prefix) {
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+function nameOf(players, id) {
+  const p = players.find((p2) => p2.id === id);
+  return p ? p.name : "Unknown";
+}
+function buildRoundSummary(round, players) {
+  const caller = nameOf(players, round.callerId);
+  if (round.assafTriggered) {
+    const winner = nameOf(players, round.winnerId);
+    return `Assaf! ${winner} undercut ${caller} \u2014 ${caller} +25, ${winner} takes the round.`;
+  }
+  return `${caller} calls Yahnev and takes the round clean.`;
+}
+function buildCelebrations(round, newRoster, players) {
+  const list = [];
+  Object.keys(round.events).forEach((playerId) => {
+    const tags = round.events[playerId];
+    const rosterEntry = newRoster.find((r) => r.playerId === playerId);
+    const name = nameOf(players, playerId);
+    tags.forEach((tag) => {
+      if (tag === "fire") list.push({ id: makeId("cel"), type: "fire", name, value: rosterEntry ? rosterEntry.streak : 0 });
+      if (tag === "exactTotal") list.push({ id: makeId("cel"), type: "exactTotal", name, value: rosterEntry ? rosterEntry.score + 50 : 0 });
+      if (tag === "eggplant") list.push({ id: makeId("cel"), type: "eggplant", name, value: 69 });
+    });
+  });
+  return list;
+}
+function playRound(roster, entries, callerId) {
+  const activeIds = roster.filter((r) => r.active).map((r) => r.playerId);
+  const callerScore = entries[callerId];
+  const candidates = activeIds.filter((id) => id !== callerId && entries[id] <= callerScore);
+  const assafTriggered = candidates.length > 0;
+  let winnerId;
+  if (assafTriggered) {
+    winnerId = candidates.reduce((min, id) => entries[id] < entries[min] ? id : min, candidates[0]);
+  } else {
+    winnerId = callerId;
+  }
+  const additions = {};
+  activeIds.forEach((id) => {
+    if (id === winnerId) additions[id] = 0;
+    else if (assafTriggered && id === callerId) additions[id] = 25;
+    else additions[id] = entries[id];
+  });
+  const rosterById = {};
+  roster.forEach((r) => {
+    rosterById[r.playerId] = { ...r };
+  });
+  const events = {};
+  const pushEvent = (id, tag) => {
+    events[id] = [...events[id] || [], tag];
   };
+  activeIds.forEach((id) => {
+    const entry = rosterById[id];
+    if (id === winnerId) {
+      entry.streak = (entry.streak || 0) + 1;
+      if (entry.streak >= 3) {
+        additions[id] = -10;
+        pushEvent(id, "fire");
+      }
+    } else {
+      entry.streak = 0;
+    }
+  });
+  activeIds.forEach((id) => {
+    const entry = rosterById[id];
+    const addition = additions[id];
+    let newScore = entry.score + addition;
+    if (addition > 0 && EXACT_TOTALS.includes(newScore)) {
+      newScore -= 50;
+      pushEvent(id, "exactTotal");
+    }
+    if (newScore === 69) {
+      pushEvent(id, "eggplant");
+    }
+    entry.score = newScore;
+  });
+  const newRoster = roster.map((r) => rosterById[r.playerId]);
+  return { newRoster, winnerId, assafTriggered, additions, events };
+}
+function checkGameOver(roster, gameLimit) {
+  const active = roster.filter((r) => r.active);
+  const busted = active.some((r) => r.score >= gameLimit);
+  if (!busted) return { gameOver: false, winnerId: null };
+  const winner = active.reduce((min, r) => r.score < min.score ? r : min, active[0]);
+  return { gameOver: true, winnerId: winner.playerId };
+}
+function computeLateEntrantScore(roster) {
+  const active = roster.filter((r) => r.active);
+  if (active.length === 0) return 0;
+  const scores = active.map((r) => r.score);
+  const lo = Math.min(...scores);
+  const hi = Math.max(...scores);
+  return lo + Math.floor(Math.random() * (hi - lo + 1));
+}
+function applyEndGameStats(playerStats, roster, winnerId) {
+  const players = playerStats.players.map((p) => {
+    const rosterEntry = roster.find((r) => r.playerId === p.id && r.active);
+    if (!rosterEntry) return p;
+    return { ...p, totalGames: p.totalGames + 1, wins: p.id === winnerId ? p.wins + 1 : p.wins };
+  });
+  return { ...playerStats, players, totalGamesCompleted: playerStats.totalGamesCompleted + 1, lastWinnerId: winnerId };
+}
+const STYLE = `
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap');
 
-  // Cross-game tally (by NAME)
-  const tally = {
-    gamesPlayed: 0,
-    lastWinner: null,
-    winsByName: {}
+  .yhv-sans { font-family: 'Inter', sans-serif; font-weight: 400; }
+  .yhv-mono { font-family: 'Inter', sans-serif; font-weight: 400; font-variant-numeric: tabular-nums; }
+
+  .yhv-app { overscroll-behavior-y: contain; -webkit-text-size-adjust: 100%; }
+  .yhv-app, .yhv-app * { -webkit-tap-highlight-color: transparent; }
+  .yhv-app :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .yhv-app input { outline: none; }
+  .yhv-app input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .yhv-app button { touch-action: manipulation; -webkit-touch-callout: none; user-select: none; transition: transform .08s ease, opacity .08s ease; }
+  .yhv-app button:active:not(:disabled) { transform: scale(0.96); opacity: 0.8; }
+
+  @keyframes yhv-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+  @keyframes yhv-flame-rise-in {
+    0% { transform: translateY(70%) scale(.5); opacity: 0; }
+    20% { opacity: 1; }
+    100% { transform: translateY(0) scale(1); opacity: 1; }
+  }
+  @keyframes yhv-flame-burn-out {
+    0% { opacity: 1; transform: scale(1) translateY(0); }
+    100% { opacity: 0; transform: scale(.25) translateY(-12%); }
+  }
+
+  @keyframes yhv-eggplant-drop-in {
+    0% { transform: translateY(-170%) rotate(-12deg); opacity: 0; }
+    20% { opacity: 1; }
+    100% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  }
+  @keyframes yhv-eggplant-drop-out {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(180%) rotate(10deg); opacity: 1; }
+  }
+
+  @keyframes yhv-invert-strobe {
+    0%, 100% { filter: invert(0); }
+    16.66% { filter: invert(1); }
+    33.33% { filter: invert(0); }
+    50% { filter: invert(1); }
+    66.66% { filter: invert(0); }
+    83.33% { filter: invert(1); }
+  }
+
+  .yhv-celebration-scrim { animation: yhv-fade-in .15s ease-out; }
+  .yhv-celebration-strobe { animation: yhv-invert-strobe 2.1s steps(1, end) 1; }
+  .yhv-flame-particle { position: absolute; will-change: transform, opacity; }
+  .yhv-eggplant-particle { position: absolute; will-change: transform, opacity; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .yhv-app button:active:not(:disabled) { transform: none; }
+    .yhv-celebration-scrim, .yhv-celebration-strobe,
+    .yhv-flame-particle, .yhv-eggplant-particle { animation: none !important; filter: none !important; }
+  }
+
+  .flex { display: flex; }
+  .flex-1 { flex: 1 1 0%; }
+  .flex-col { flex-direction: column; }
+  .flex-wrap { flex-wrap: wrap; }
+  .gap-1 { gap: 4px; }
+  .gap-1.5 { gap: 6px; }
+  .gap-2 { gap: 8px; }
+  .gap-3 { gap: 12px; }
+  .items-center { align-items: center; }
+  .items-end { align-items: flex-end; }
+  .justify-between { justify-content: space-between; }
+  .min-w-0 { min-width: 0px; }
+  .text-right { text-align: right; }
+  .w-full { width: 100%; }
+`;
+function Button({ children, onClick, disabled, variant = "primary", full, compact }) {
+  const variants = {
+    primary: { background: "var(--accent)", color: "var(--accent-on)", border: "none" },
+    secondary: { background: "transparent", color: "var(--fg)", border: "1px solid var(--border-strong)" },
+    ghost: { background: "transparent", color: "var(--fg-muted)", border: "none", textDecoration: "underline", display: "block", width: "100%", textAlign: "center" },
+    danger: { background: "transparent", color: "var(--accent)", border: "1px solid var(--accent)" }
   };
-
-  function save(){
-    localStorage.setItem('yahnev_state', JSON.stringify(state));
-    localStorage.setItem('yahnev_tally', JSON.stringify(tally));
-  }
-
-  function load(){
-    const rawState = localStorage.getItem('yahnev_state');
-    if(rawState){
-      try{
-        const s = JSON.parse(rawState);
-        if(s && Array.isArray(s.players) && Array.isArray(s.rounds)){
-          state.players = s.players;
-          state.rounds = s.rounds;
-          state.gameLimit = typeof s.gameLimit === 'number' ? s.gameLimit : 100;
-        }
-      }catch(_){}
+  return /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      onClick,
+      disabled,
+      className: "yhv-sans",
+      style: {
+        ...variants[variant],
+        padding: variant === "ghost" ? "12px 0" : compact ? "7px 11px" : "14px 18px",
+        fontSize: compact ? 12 : 14,
+        borderRadius: 4,
+        width: full ? "100%" : void 0,
+        opacity: disabled ? 0.35 : 1,
+        cursor: disabled ? "default" : "pointer"
+      }
+    },
+    children
+  );
+}
+function Toggle({ children, selected, onClick, mono }) {
+  return /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      onClick,
+      "aria-pressed": selected,
+      className: mono ? "yhv-mono" : "yhv-sans",
+      style: {
+        padding: "10px 16px",
+        fontSize: 14,
+        borderRadius: 4,
+        border: "1px solid var(--border-strong)",
+        background: selected ? "var(--fg)" : "transparent",
+        color: selected ? "var(--bg)" : "var(--fg)",
+        cursor: "pointer"
+      }
+    },
+    children
+  );
+}
+function AccordionSection({ title, icon, open, onToggle, badge, children }) {
+  return /* @__PURE__ */ React.createElement("div", { style: { borderTop: "1px solid var(--border)" } }, /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      onClick: onToggle,
+      className: "flex items-center justify-between w-full",
+      style: { padding: "14px 0", background: "none", border: "none", color: "var(--fg)", cursor: "pointer" },
+      "aria-expanded": open
+    },
+    /* @__PURE__ */ React.createElement("span", { className: "flex items-center gap-2", style: { fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase" } }, icon, title, badge ? /* @__PURE__ */ React.createElement("span", { className: "yhv-mono", style: { color: "var(--fg-muted)" } }, badge) : null),
+    /* @__PURE__ */ React.createElement(IconChevronDown, { size: 16, color: "var(--fg-muted)", style: { transform: open ? "rotate(180deg)" : "none", transition: "transform .2s" } })
+  ), open ? /* @__PURE__ */ React.createElement("div", { style: { paddingBottom: 18 } }, children) : null);
+}
+function Label({ children }) {
+  return /* @__PURE__ */ React.createElement("p", { className: "yhv-mono", style: { fontSize: 12, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--fg-muted)", marginBottom: 8 } }, children);
+}
+function ScoreRow({ name, score, streak, joinedLate, value, onChange, isCaller, onSelectCaller, rank }) {
+  return /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3", style: { borderTop: "1px solid var(--border)", padding: "14px 0" } }, /* @__PURE__ */ React.createElement("div", { className: "flex-1 min-w-0" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 flex-wrap" }, rank ? /* @__PURE__ */ React.createElement("span", { className: "yhv-mono", style: { fontSize: 12, color: "var(--fg-muted)" } }, rank, ".") : null, /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      onClick: onSelectCaller,
+      "aria-pressed": isCaller,
+      className: "yhv-sans",
+      style: {
+        fontSize: 16,
+        color: isCaller ? "var(--accent)" : "var(--fg)",
+        background: "none",
+        border: `1px solid ${isCaller ? "var(--accent)" : "var(--border)"}`,
+        borderRadius: 8,
+        padding: "5px 10px",
+        cursor: "pointer"
+      }
+    },
+    name
+  ), joinedLate ? /* @__PURE__ */ React.createElement("span", { className: "yhv-mono", style: { fontSize: 11, color: "var(--fg-muted)" } }, "[late]") : null, streak >= 2 ? /* @__PURE__ */ React.createElement("span", { className: "yhv-mono flex items-center gap-1", style: { fontSize: 11, color: streak >= 3 ? "var(--accent)" : "var(--fg-muted)" } }, /* @__PURE__ */ React.createElement(IconFlame, { size: 11 }), " x", streak) : null)), /* @__PURE__ */ React.createElement(
+    "input",
+    {
+      type: "number",
+      inputMode: "numeric",
+      min: "0",
+      value,
+      onChange: (e) => onChange(e.target.value),
+      placeholder: "0",
+      className: "yhv-mono text-right",
+      style: { width: 60, fontSize: 16, background: "transparent", border: "none", borderBottom: "1px solid var(--border-strong)", color: "var(--fg)", padding: "2px 0" }
     }
-
-    const rawTally = localStorage.getItem('yahnev_tally');
-    if(rawTally){
-      try{
-        const t = JSON.parse(rawTally);
-        if(t && typeof t === 'object'){
-          tally.gamesPlayed = Number(t.gamesPlayed || 0);
-          tally.lastWinner = t.lastWinner || null;
-          tally.winsByName = t.winsByName && typeof t.winsByName === 'object' ? t.winsByName : {};
-        }
-      }catch(_){}
-    }
-  }
-
-  function renderTally(){
-    gamesPlayedEl.textContent = String(tally.gamesPlayed);
-    lastWinnerEl.textContent = tally.lastWinner ? tally.lastWinner : '—';
-
-    const entries = Object.entries(tally.winsByName)
-      .sort((a,b)=> b[1]-a[1] || a[0].localeCompare(b[0]));
-
-    winsListEl.innerHTML = '';
-    if(entries.length === 0){
-      winsListEl.innerHTML = `<div class="muted">No wins recorded yet.</div>`;
-    } else {
-      entries.forEach(([name, wins])=>{
-        const row = document.createElement('div');
-        row.className = 'row';
-        row.innerHTML = `<span class="pill">${name}</span> <span class="muted">Wins: <strong class="tot">${wins}</strong></span>`;
-        winsListEl.appendChild(row);
+  ), /* @__PURE__ */ React.createElement("div", { className: "yhv-mono text-right", style: { fontSize: 26, minWidth: 62, color: "var(--fg)" } }, score));
+}
+const CELEBRATION_DURATION = { fire: 3e3, exactTotal: 2100, eggplant: 3e3 };
+function makeGridParticles(direction) {
+  const cols = 7;
+  const rows = 9;
+  const list = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const topPct = (r + 0.5) / rows * 100;
+      const leftPct = (c + 0.5) / cols * 100;
+      const rowFraction = direction === "up" ? 1 - r / (rows - 1) : r / (rows - 1);
+      list.push({
+        top: topPct + (Math.random() - 0.5) * 5,
+        left: leftPct + (Math.random() - 0.5) * 5,
+        size: 24 + Math.random() * 16,
+        fillDelay: rowFraction * 0.6 + Math.random() * 0.2,
+        fillDuration: 0.4 + Math.random() * 0.2
       });
     }
-
-    tallyInlineEl.textContent = `Games: ${tally.gamesPlayed}`;
   }
-
-  function renderPlayers(){
-    playersList.innerHTML = '';
-    state.players.forEach(p=>{
-      const row = document.createElement('div');
-      row.className = 'row';
-      row.innerHTML = `
-        <span class="pill">${p.name}</span>
-        <span class="muted small">Total: <strong class="tot">${p.total}</strong></span>
-        <span class="muted small">Streak: <strong>${p.streak}</strong></span>
-        <button class="ghost small" data-remove="${p.id}">Remove</button>
-      `;
-      playersList.appendChild(row);
-    });
-
-    playersList.querySelectorAll('button[data-remove]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const id = btn.getAttribute('data-remove');
-        removePlayer(id);
-      });
-    });
-
-    const full = state.players.length >= MAX_PLAYERS;
-    addPlayerBtn.disabled = full;
-    addLateBtn.disabled = full;
-  }
-
-  function renderRoundForm(){
-    roundFormArea.innerHTML = '';
-
-    if(state.players.length === 0){
-      roundFormArea.innerHTML = `<p class="muted small">Add players to start.</p>`;
-      submitRoundBtn.disabled = true;
-      undoBtn.disabled = state.rounds.length === 0;
-      roundNumberEl.textContent = state.rounds.length;
-      return;
-    }
-
-    submitRoundBtn.disabled = false;
-    undoBtn.disabled = state.rounds.length === 0;
-    roundNumberEl.textContent = state.rounds.length;
-
-    state.players.forEach(p=>{
-      const wrapper = document.createElement('div');
-      wrapper.className = 'round-row';
-      wrapper.innerHTML = `
-        <div class="round-name">
-          <span class="small">${p.name}</span>
-          <label class="round-radio">
-            <input type="radio" name="yaniv" value="${p.id}" />
-            <span>Yahnev</span>
-          </label>
-        </div>
-        <input class="round-score" type="number" step="1" inputmode="numeric" pattern="[0-9]*"
-          placeholder="Score" data-score="${p.id}" />
-        <span class="round-total">Total: <strong class="tot">${p.total}</strong></span>
-      `;
-      roundFormArea.appendChild(wrapper);
-    });
-  }
-
-  function renderGameLimit(){
-    document.querySelectorAll('.limit-btn').forEach(btn=>{
-      const val = Number(btn.dataset.limit);
-      if(val === state.gameLimit){
-        btn.classList.add('primary');
-        btn.classList.remove('ghost');
-      } else {
-        btn.classList.remove('primary');
-        btn.classList.add('ghost');
-      }
-    });
-  }
-
-  function renderBoard(){
-    const arr = [...state.players].sort((a,b)=> a.total - b.total);
-    const limit = state.gameLimit || Infinity;
-
-    boardBody.innerHTML = '';
-    arr.forEach((p, idx)=>{
-      const tr = document.createElement('tr');
-      const isOut = p.total >= limit;
-
-      let streakContent = '';
-      if(p.streak > 0){
-        const fireCount = Math.min(p.streak, 5);
-        const fires = '🔥'.repeat(fireCount);
-        const extra = p.streak > 5 ? ` x${p.streak}` : '';
-        streakContent = `<span class="pill win">${fires}${extra}</span>`;
-      } else {
-        streakContent = `<span class="pill">0</span>`;
-      }
-
-      tr.innerHTML = `
-        <td>${idx+1}</td>
-        <td>${p.name}${isOut ? ' 💀' : ''}</td>
-        <td class="tot">${p.total}</td>
-        <td>${streakContent}</td>
-      `;
-      boardBody.appendChild(tr);
-    });
-  }
-
-  function renderLog(){
-    logEl.innerHTML = '';
-    if(state.rounds.length === 0){
-      logEl.innerHTML = `<div class="log-item muted">No rounds yet.</div>`;
-      return;
-    }
-
-    state.rounds.forEach((r,i)=>{
-      const div = document.createElement('div');
-      const n = i+1;
-      const lines = r.entries.map(e=>{
-        const p = state.players.find(pp=>pp.id===e.id);
-        const name = p ? p.name : 'Player';
-        const parts = [`${name}: +${e.raw}`];
-        if(e.assafCaller) parts.push(`Assaf caller +${ASSAF_PENALTY}`);
-        if(e.assafAgainst) parts.push(`(won via Assaf)`);
-        if(e.appliedStreakBonus) parts.push(`streak ${STREAK_BONUS_PER_ROUND}`);
-        if(e.appliedExactBonus) parts.push(`${EXACT_BONUS} exact`);
-        if(e.won && !e.assafAgainst) parts.push(`(won)`);
-        return '• ' + parts.join(' / ');
-      }).join('<br/>');
-
-      div.className = 'log-item';
-      div.innerHTML = `<strong>Round ${n}</strong><br/>${lines}`;
-      logEl.appendChild(div);
-    });
-
-    logEl.scrollTop = logEl.scrollHeight;
-  }
-
-  function addPlayerWithTotal(name, startingTotal){
-    if(!name) return;
-    if(state.players.length >= MAX_PLAYERS) return;
-
-    const id = crypto.randomUUID();
-    state.players.push({ id, name: name.trim(), total: startingTotal, streak: 0, lastWon: false });
-    save();
-    renderPlayers();
-    renderRoundForm();
-    renderBoard();
-  }
-
-  function addPlayerNormal(name){
-    addPlayerWithTotal(name, 0);
-  }
-
-  function addLateEntrant(name){
-    if(state.players.length === 0){
-      // if nobody exists yet, late entrant is same as normal
-      addPlayerWithTotal(name, 0);
-      return;
-    }
-    const totals = state.players.map(p => p.total);
-    const min = Math.min(...totals);
-    const max = Math.max(...totals);
-    const start = randomIntInclusive(min, max);
-    addPlayerWithTotal(name, start);
-    alert(`${name} joined late on ${start} points.`);
-  }
-
-  function removePlayer(id){
-    if(state.rounds.length){
-      alert('You can’t remove players after rounds have started. Use New Game or Reset Everything.');
-      return;
-    }
-    state.players = state.players.filter(p=>p.id!==id);
-    save();
-    renderPlayers(); renderRoundForm(); renderBoard();
-  }
-
-  function parseRoundInputs(){
-    const entries = [];
-    for(const p of state.players){
-      const scoreEl = roundFormArea.querySelector(`input[data-score="${p.id}"]`);
-      const val = scoreEl.value.trim();
-      if(val === '') return { ok:false, error:`Please enter a score for ${p.name}.` };
-      const n = Number(val);
-      if(!Number.isFinite(n)) return { ok:false, error:`Score for ${p.name} must be a number.` };
-      entries.push({ id: p.id, raw: Math.trunc(n), won: false });
-    }
-
-    const yanivRadio = document.querySelector('input[name="yaniv"]:checked');
-    if(!yanivRadio){
-      return { ok:false, error:'Select who called Yahnev this round.' };
-    }
-    const yanivCallerId = yanivRadio.value;
-    return { ok:true, entries, yanivCallerId };
-  }
-
-  function resolveRound(entries, yanivCallerId){
-    const caller = entries.find(e=>e.id===yanivCallerId);
-    if(!caller) return { entries, assaf: null, yanivCallerId };
-
-    const opponents = entries.filter(e=>e.id!==yanivCallerId);
-    const minOpp = opponents.reduce((acc, e)=> acc===null || e.raw < acc.raw ? e : acc, null);
-
-    if(minOpp && minOpp.raw <= caller.raw){
-      // Assaf
-      caller.raw += ASSAF_PENALTY;
-      entries.forEach(e=> e.won = false);
-      minOpp.won = true;
-      return { entries, assaf: { caller: caller.id, winner: minOpp.id }, yanivCallerId };
-    } else {
-      // Caller wins
-      entries.forEach(e=> e.won = false);
-      caller.won = true;
-      return { entries, assaf: { caller: null, winner: caller.id }, yanivCallerId };
-    }
-  }
-
-  function triggerFireRain(){
-    const container = document.createElement('div');
-    container.className = 'fire-rain';
-
-    const count = 70;
-    for(let i=0;i<count;i++){
-      const span = document.createElement('span');
-      span.className = 'fire-emoji';
-      span.textContent = '🔥';
-      span.style.left = Math.random() * 100 + 'vw';
-      span.style.top = (-20 - Math.random()*80) + 'px';
-      span.style.animationDelay = (Math.random()*0.9) + 's';
-      span.style.fontSize = (18 + Math.random()*18) + 'px';
-      container.appendChild(span);
-    }
-
-    document.body.appendChild(container);
-    setTimeout(()=>{ container.remove(); }, 1900);
-  }
-
-  function triggerEggplant69(){
-    const layer = document.createElement('div');
-    layer.className = 'eggplant-layer';
-
-    const count = 22;
-    for(let i=0;i<count;i++){
-      const egg = document.createElement('span');
-      egg.className = 'eggplant';
-      egg.textContent = '🍆';
-      egg.style.left = (Math.random()*100) + 'vw';
-      egg.style.top = (Math.random()*100) + 'vh';
-      egg.style.animationDelay = (Math.random()*0.25) + 's';
-      egg.style.fontSize = (20 + Math.random()*28) + 'px';
-      layer.appendChild(egg);
-    }
-
-    document.body.appendChild(layer);
-    setTimeout(()=>{ layer.remove(); }, 1600);
-  }
-
-  function triggerExactStrobe(name, fromTotal, toTotal){
-    const overlay = document.createElement('div');
-    overlay.className = 'score-overlay';
-    overlay.innerHTML = `<div class="score-text">${name}: ${fromTotal} → ${toTotal}</div>`;
-    document.body.appendChild(overlay);
-
-    document.body.classList.add('strobe');
-
-    setTimeout(()=>{
-      document.body.classList.remove('strobe');
-      overlay.remove();
-    }, 1900);
-  }
-
-  function clearRoundInputs(){
-    roundFormArea.querySelectorAll('input[type="number"]').forEach(i=> i.value = '');
-    document.querySelectorAll('input[name="yaniv"]').forEach(r=> r.checked = false);
-  }
-
-  function checkGameOverAndRecordWinner(){
-    const limit = state.gameLimit || Infinity;
-    const anyOut = state.players.some(p=> p.total >= limit);
-    if(!anyOut) return false;
-
-    const sorted = [...state.players].sort((a,b)=> a.total - b.total);
-    const winner = sorted[0];
-
-    tally.gamesPlayed += 1;
-    tally.lastWinner = winner.name;
-    tally.winsByName[winner.name] = (tally.winsByName[winner.name] || 0) + 1;
-
-    save();
-    renderTally();
-
-    alert(`Game over! Winner: ${winner.name}\nTap "New Game" to play again with the same players.`);
-    return true;
-  }
-
-  function newGameKeepPlayers(){
-    state.players = state.players.map(p=>({ ...p, total:0, streak:0, lastWon:false }));
-    state.rounds = [];
-    save();
-    renderBoard(); renderLog(); renderRoundForm(); renderPlayers();
-    roundNumberEl.textContent = '0';
-    undoBtn.disabled = true;
-  }
-
-  function undoLastRound(){
-    if(state.rounds.length === 0) return;
-
-    const names = state.players.map(p=>({id:p.id, name:p.name}));
-    const rounds = [...state.rounds];
-
-    state.players = names.map(n=>({ id:n.id, name:n.name, total:0, streak:0, lastWon:false }));
-    state.rounds = [];
-
-    for(let i=0;i<rounds.length-1;i++){
-      const r = rounds[i];
-      const entries = r.entries.map(e=>({ id:e.id, raw:e.raw, won:false }));
-      applyRound({ entries, yanivCallerId: r.yanivCallerId }, true);
-    }
-    save();
-  }
-
-  // ✅ FIXED: exact bonus only triggers when score increased this round and lands exactly on increment
-  function applyRound(parsed, silentAnimations=false){
-    const { entries: rawEntries, yanivCallerId } = parsed;
-
-    const { entries, assaf, yanivCallerId: storedYaniv } = resolveRound(rawEntries, yanivCallerId);
-    const callerId = storedYaniv;
-
-    const roundRecord = { entries: [], yanivCallerId: storedYaniv };
-
-    const newStreaks = {};
-    const prevStreaks = {};
-    let fireRainNeeded = false;
-
-    // compute streaks
-    state.players.forEach(p=>{
-      const won = entries.find(e=>e.id===p.id)?.won || false;
-      prevStreaks[p.id] = p.streak;
-      newStreaks[p.id] = won ? p.streak + 1 : 0;
-    });
-
-    state.players.forEach(p=>{
-      const entry = entries.find(e=>e.id===p.id);
-
-      let appliedStreakBonus = 0;
-      let appliedExactBonus = 0;
-
-      let wasAssafCaller = false;
-      let wonViaAssaf = false;
-      const wonThisRound = !!entry.won;
-
-      if(assaf){
-        if(assaf.caller === p.id) wasAssafCaller = true;
-        if(assaf.winner === p.id && assaf.caller) wonViaAssaf = true;
-      }
-
-      // base score (caller win = 0)
-      let baseScore = entry.raw;
-      const isWinningCaller = (p.id === callerId && wonThisRound && !wonViaAssaf);
-      if(isWinningCaller) baseScore = 0;
-
-      // streak bonus
-      if(newStreaks[p.id] >= STREAK_BONUS_THRESHOLD && wonThisRound){
-        appliedStreakBonus = STREAK_BONUS_PER_ROUND;
-      }
-
-      const before = p.total;
-      const delta = baseScore + appliedStreakBonus;
-
-      // apply delta
-      p.total += delta;
-
-      // 69 easter egg (landing exactly on 69 after applying delta)
-      if(!silentAnimations && p.total === 69){
-        triggerEggplant69();
-      }
-
-      // ✅ exact totals bonus ONLY if you increased your score this round
-      // i.e. delta must be > 0 AND after adding you land on 50/100/150/200
-      if(delta > 0 && EXACT_TOTALS.has(p.total)){
-        const hit = p.total;       // the exact total you hit
-        p.total += EXACT_BONUS;    // apply -50
-        appliedExactBonus = true;
-
-        if(!silentAnimations){
-          triggerExactStrobe(p.name, hit, p.total);
+  return list;
+}
+function Celebration({ event, onDone }) {
+  const seed = event ? event.id : null;
+  const flames = useMemo(() => makeGridParticles("up"), [seed]);
+  const eggplants = useMemo(() => makeGridParticles("down"), [seed]);
+  useEffect(() => {
+    if (!event) return;
+    const duration = CELEBRATION_DURATION[event.type] || 2e3;
+    const t = setTimeout(onDone, duration);
+    return () => clearTimeout(t);
+  }, [event, onDone]);
+  if (!event) return null;
+  return /* @__PURE__ */ React.createElement(
+    "div",
+    {
+      onClick: onDone,
+      role: "button",
+      "aria-label": "Dismiss",
+      className: `yhv-celebration-scrim ${event.type === "exactTotal" ? "yhv-celebration-strobe" : ""}`,
+      style: { position: "absolute", inset: 0, zIndex: 50, background: "var(--bg)", cursor: "pointer", overflow: "hidden" }
+    },
+    event.type === "fire" ? /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", inset: 0, overflow: "hidden" }, "aria-hidden": "true" }, flames.map((f, i) => /* @__PURE__ */ React.createElement(
+      "span",
+      {
+        key: i,
+        className: "yhv-flame-particle",
+        style: {
+          top: `${f.top}%`,
+          left: `${f.left}%`,
+          fontSize: f.size,
+          animation: `yhv-flame-rise-in ${f.fillDuration}s ease-out ${f.fillDelay}s 1 forwards, yhv-flame-burn-out 1.4s ease-in 1.6s 1 forwards`
         }
+      },
+      "\u{1F525}"
+    ))) : null,
+    event.type === "eggplant" ? /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", inset: 0, overflow: "hidden" }, "aria-hidden": "true" }, eggplants.map((e, i) => /* @__PURE__ */ React.createElement(
+      "span",
+      {
+        key: i,
+        className: "yhv-eggplant-particle",
+        style: {
+          top: `${e.top}%`,
+          left: `${e.left}%`,
+          fontSize: e.size,
+          animation: `yhv-eggplant-drop-in ${e.fillDuration}s ease-out ${e.fillDelay}s 1 forwards, yhv-eggplant-drop-out 1.4s cubic-bezier(.55,0,1,.45) 1.6s 1 forwards`
+        }
+      },
+      "\u{1F346}"
+    ))) : null
+  );
+}
+function Header({ status, roundNumber, gameLimit }) {
+  return /* @__PURE__ */ React.createElement("div", { style: { paddingBottom: 14, marginBottom: 14, borderBottom: "2px solid var(--border-strong)" } }, /* @__PURE__ */ React.createElement("div", { className: "flex items-end justify-between" }, /* @__PURE__ */ React.createElement("h1", { className: "yhv-mono", style: { fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--fg-muted)", textAlign: "left" } }, "Yahnev"), status === "active" ? /* @__PURE__ */ React.createElement("span", { className: "yhv-mono", style: { fontSize: 12, color: "var(--fg-muted)" } }, "Round ", roundNumber, " \xB7 Limit ", gameLimit) : /* @__PURE__ */ React.createElement("span", { className: "yhv-mono", style: { fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--fg-muted)" } }, "Scoring companion")));
+}
+function SetupView({ players, selected, gameLimit, newName, onToggle, onNewNameChange, onAddNew, onLimitChange, presets }) {
+  const handleKey = (e) => {
+    if (e.key === "Enter") onAddNew();
+  };
+  return /* @__PURE__ */ React.createElement("div", { style: { padding: "4px 0 24px" } }, /* @__PURE__ */ React.createElement(Label, null, "Players (", selected.length, " selected)"), /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap gap-2", style: { marginBottom: 14 } }, players.map((p) => /* @__PURE__ */ React.createElement(Toggle, { key: p.id, selected: selected.includes(p.id), onClick: () => onToggle(p.id) }, p.name))), /* @__PURE__ */ React.createElement("div", { className: "flex gap-2", style: { marginBottom: 22 } }, /* @__PURE__ */ React.createElement(
+    "input",
+    {
+      value: newName,
+      onChange: (e) => onNewNameChange(e.target.value),
+      onKeyDown: handleKey,
+      placeholder: "Add a player",
+      className: "yhv-sans flex-1",
+      style: { padding: "12px 12px", fontSize: 16, background: "transparent", border: "1px solid var(--border-strong)", borderRadius: 4, color: "var(--fg)" }
+    }
+  ), /* @__PURE__ */ React.createElement(Button, { variant: "secondary", onClick: onAddNew, compact: true }, "Add")), /* @__PURE__ */ React.createElement(Label, null, "Game limit"), /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap gap-2", style: { marginBottom: 22 } }, presets.map((n) => /* @__PURE__ */ React.createElement(Toggle, { key: n, selected: gameLimit === n, onClick: () => onLimitChange(n), mono: true }, n))));
+}
+function ActiveView({ roster, players, roundDraft, onScoreChange, onCallerChange, onAskEndGame, lastRoundSummary, sortMode, onChangeSortMode }) {
+  const activeRoster = roster.filter((r) => r.active);
+  const tooFewPlayers = activeRoster.length < 2;
+  const orderedRoster = sortMode === "winning" ? activeRoster.slice().sort((a, b) => a.score - b.score) : activeRoster;
+  return /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 8 } }, lastRoundSummary ? /* @__PURE__ */ React.createElement("div", { className: "yhv-mono", style: { fontSize: 13, padding: "10px 0", borderBottom: "1px solid var(--border)", color: "var(--fg-muted)" } }, lastRoundSummary) : null, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between", style: { marginBottom: 8 } }, /* @__PURE__ */ React.createElement("span", { className: "yhv-mono", style: { fontSize: 12, color: "var(--fg-muted)" } }, "Sort"), /* @__PURE__ */ React.createElement("div", { className: "flex gap-2" }, /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      onClick: () => onChangeSortMode("roster"),
+      "aria-pressed": sortMode === "roster",
+      className: "yhv-mono",
+      style: {
+        fontSize: 11,
+        padding: "4px 10px",
+        borderRadius: 999,
+        border: "1px solid var(--border-strong)",
+        background: sortMode === "roster" ? "var(--fg)" : "transparent",
+        color: sortMode === "roster" ? "var(--bg)" : "var(--fg)",
+        cursor: "pointer"
       }
-
-      // fire rain when crossing streak threshold
-      if(wonThisRound && prevStreaks[p.id] < STREAK_BONUS_THRESHOLD && newStreaks[p.id] >= STREAK_BONUS_THRESHOLD){
-        fireRainNeeded = true;
+    },
+    "Roster"
+  ), /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      onClick: () => onChangeSortMode("winning"),
+      "aria-pressed": sortMode === "winning",
+      className: "yhv-mono",
+      style: {
+        fontSize: 11,
+        padding: "4px 10px",
+        borderRadius: 999,
+        border: "1px solid var(--border-strong)",
+        background: sortMode === "winning" ? "var(--fg)" : "transparent",
+        color: sortMode === "winning" ? "var(--bg)" : "var(--fg)",
+        cursor: "pointer"
       }
-
-      p.streak = newStreaks[p.id];
-      p.lastWon = wonThisRound;
-
-      roundRecord.entries.push({
-        id: p.id,
-        raw: baseScore,
-        won: wonThisRound,
-        appliedStreakBonus: appliedStreakBonus !== 0,
-        appliedExactBonus: !!appliedExactBonus,
-        assafCaller: wasAssafCaller,
-        assafAgainst: wonViaAssaf
-      });
+    },
+    "Winning"
+  ))), orderedRoster.map((r, i) => {
+    var _a;
+    return /* @__PURE__ */ React.createElement(
+      ScoreRow,
+      {
+        key: r.playerId,
+        name: nameOf(players, r.playerId),
+        score: r.score,
+        streak: r.streak,
+        joinedLate: r.joinedLate,
+        value: (_a = roundDraft.scores[r.playerId]) != null ? _a : "",
+        onChange: (v) => onScoreChange(r.playerId, v),
+        isCaller: roundDraft.callerId === r.playerId,
+        onSelectCaller: () => onCallerChange(r.playerId),
+        rank: sortMode === "winning" ? i + 1 : null
+      }
+    );
+  }), tooFewPlayers ? /* @__PURE__ */ React.createElement("p", { className: "yhv-mono", style: { fontSize: 13, color: "var(--fg-muted)", padding: "20px 0", textAlign: "center" } }, "Add another player from Game setup below \u2014 at least 2 active players are needed to keep scoring.") : null, /* @__PURE__ */ React.createElement(Button, { variant: "ghost", onClick: onAskEndGame }, "End this game early"));
+}
+function GameOverView({ roster, players, onDifferent, onViewStats }) {
+  const finished = roster.filter((r) => r.active).slice().sort((a, b) => a.score - b.score);
+  const winnerId = finished.length ? finished[0].playerId : null;
+  return /* @__PURE__ */ React.createElement("div", { style: { padding: "8px 0 26px", textAlign: "center" } }, /* @__PURE__ */ React.createElement(IconTrophy, { size: 28, color: "var(--accent)", style: { margin: "0 auto 10px" } }), /* @__PURE__ */ React.createElement("h2", { className: "yhv-sans", style: { fontSize: 22, marginBottom: 4 } }, winnerId ? nameOf(players, winnerId) : "Someone", " wins"), /* @__PURE__ */ React.createElement("p", { className: "yhv-mono", style: { fontSize: 13, color: "var(--fg-muted)", marginBottom: 20 } }, "Final scores, lowest to highest."), /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 24 } }, finished.map((r, i) => /* @__PURE__ */ React.createElement(
+    "div",
+    {
+      key: r.playerId,
+      className: "flex items-center justify-between",
+      style: { padding: "10px 0 10px 10px", borderTop: "1px solid var(--border)", borderLeft: i === 0 ? "2px solid var(--accent)" : "2px solid transparent" }
+    },
+    /* @__PURE__ */ React.createElement("span", { className: "yhv-sans", style: { color: i === 0 ? "var(--accent)" : "var(--fg)" } }, nameOf(players, r.playerId)),
+    /* @__PURE__ */ React.createElement("span", { className: "yhv-mono", style: { fontSize: 20 } }, r.score)
+  ))), /* @__PURE__ */ React.createElement("div", { className: "flex flex-col gap-2" }, /* @__PURE__ */ React.createElement(Button, { variant: "secondary", onClick: onDifferent, full: true }, "New game \xB7 different players"), /* @__PURE__ */ React.createElement(Button, { variant: "ghost", onClick: onViewStats }, "View stats")));
+}
+function GameSetupAccordionContent({ roster, players, gameLimit, onLimitChange, onRemove, onAddExisting, lateName, onLateNameChange, onAddNew }) {
+  const activeRoster = roster.filter((r) => r.active);
+  const inactiveKnownPlayers = players.filter((p) => !activeRoster.some((r) => r.playerId === p.id));
+  const handleKey = (e) => {
+    if (e.key === "Enter") onAddNew();
+  };
+  return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement(Label, null, "Game limit"), /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap gap-2", style: { marginBottom: 16 } }, PRESET_LIMITS.map((n) => /* @__PURE__ */ React.createElement(Toggle, { key: n, selected: gameLimit === n, onClick: () => onLimitChange(n), mono: true }, n))), /* @__PURE__ */ React.createElement(Label, null, "Players in this game"), /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 16 } }, roster.map((r) => /* @__PURE__ */ React.createElement("div", { key: r.playerId, className: "flex items-center justify-between", style: { padding: "8px 0", borderTop: "1px solid var(--border)" } }, /* @__PURE__ */ React.createElement("span", { className: "yhv-sans", style: { color: r.active ? "var(--fg)" : "var(--fg-muted)", textDecoration: r.active ? "none" : "line-through" } }, nameOf(players, r.playerId)), r.active ? /* @__PURE__ */ React.createElement(Button, { variant: "danger", onClick: () => onRemove(r.playerId), compact: true }, /* @__PURE__ */ React.createElement("span", { className: "flex items-center gap-1" }, /* @__PURE__ */ React.createElement(IconX, { size: 12 }), " Remove")) : /* @__PURE__ */ React.createElement("span", { className: "yhv-mono", style: { fontSize: 11, color: "var(--fg-muted)" } }, "left")))), inactiveKnownPlayers.length > 0 ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(Label, null, "Add someone already known"), /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap gap-2", style: { marginBottom: 16 } }, inactiveKnownPlayers.map((p) => /* @__PURE__ */ React.createElement(Toggle, { key: p.id, selected: false, onClick: () => onAddExisting(p.id) }, "+ ", p.name)))) : null, /* @__PURE__ */ React.createElement(Label, null, "New player joining now"), /* @__PURE__ */ React.createElement("div", { className: "flex gap-2" }, /* @__PURE__ */ React.createElement(
+    "input",
+    {
+      value: lateName,
+      onChange: (e) => onLateNameChange(e.target.value),
+      onKeyDown: handleKey,
+      placeholder: "Player name",
+      className: "yhv-sans flex-1",
+      style: { padding: "12px 12px", fontSize: 16, background: "transparent", border: "1px solid var(--border-strong)", borderRadius: 4, color: "var(--fg)" }
+    }
+  ), /* @__PURE__ */ React.createElement(Button, { variant: "secondary", onClick: onAddNew, compact: true }, "Add")), /* @__PURE__ */ React.createElement("p", { className: "yhv-mono", style: { fontSize: 11, color: "var(--fg-muted)", marginTop: 8 } }, "New joiners start on a random score between the lowest and highest active totals."));
+}
+function StatsAccordionContent({ players, totalGamesCompleted, lastWinnerId }) {
+  const sorted = [...players].sort((a, b) => b.wins - a.wins);
+  const lastWinner = players.find((p) => p.id === lastWinnerId);
+  return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between", style: { padding: "8px 0", borderTop: "1px solid var(--border)" } }, /* @__PURE__ */ React.createElement("span", { className: "yhv-mono", style: { fontSize: 13, color: "var(--fg-muted)" } }, "Games this session"), /* @__PURE__ */ React.createElement("span", { className: "yhv-mono" }, totalGamesCompleted)), /* @__PURE__ */ React.createElement("div", { className: "flex justify-between", style: { padding: "8px 0", borderTop: "1px solid var(--border)", marginBottom: 10 } }, /* @__PURE__ */ React.createElement("span", { className: "yhv-mono", style: { fontSize: 13, color: "var(--fg-muted)" } }, "Last winner"), /* @__PURE__ */ React.createElement("span", { className: "yhv-sans" }, lastWinner ? lastWinner.name : "\u2014")), sorted.length === 0 ? /* @__PURE__ */ React.createElement("p", { className: "yhv-mono", style: { fontSize: 13, color: "var(--fg-muted)" } }, "No games played yet this session.") : sorted.map((p, i) => /* @__PURE__ */ React.createElement("div", { key: p.id, className: "flex items-center justify-between", style: { padding: "8px 0", borderTop: "1px solid var(--border)" } }, /* @__PURE__ */ React.createElement("span", { className: "yhv-sans" }, i + 1, ". ", p.name), /* @__PURE__ */ React.createElement("span", { className: "yhv-mono", style: { fontSize: 12, color: "var(--fg-muted)" } }, p.wins, "W / ", p.totalGames, "G"))));
+}
+function RoundLogAccordionContent({ rounds, players }) {
+  if (!rounds || rounds.length === 0) {
+    return /* @__PURE__ */ React.createElement("p", { className: "yhv-mono", style: { fontSize: 13, color: "var(--fg-muted)" } }, "No rounds played yet.");
+  }
+  return /* @__PURE__ */ React.createElement("div", null, rounds.slice().reverse().map((round) => {
+    const caller = nameOf(players, round.callerId);
+    const winner = nameOf(players, round.winnerId);
+    return /* @__PURE__ */ React.createElement("div", { key: round.roundNumber, style: { padding: "10px 0", borderTop: "1px solid var(--border)" } }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("span", { className: "yhv-mono", style: { fontSize: 12, color: "var(--fg-muted)" } }, "Round ", round.roundNumber), round.assafTriggered ? /* @__PURE__ */ React.createElement("span", { className: "yhv-mono", style: { fontSize: 11, color: "var(--accent)" } }, "ASSAF") : null), /* @__PURE__ */ React.createElement("p", { className: "yhv-mono", style: { fontSize: 13, marginTop: 2 } }, caller, " called \xB7 ", round.assafTriggered ? `${winner} undercut and won` : `${caller} won the round`), /* @__PURE__ */ React.createElement("p", { className: "yhv-mono", style: { fontSize: 11, color: "var(--fg-muted)", marginTop: 4 } }, Object.entries(round.scoresAfter).map(([pid, score]) => `${nameOf(players, pid)} ${score}`).join(" \xB7 ")));
+  }));
+}
+function SettingsAccordionContent({ settings, onChange, onResetAll, resetConfirm, onAskReset }) {
+  return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between", style: { padding: "8px 0", borderTop: "1px solid var(--border)" } }, /* @__PURE__ */ React.createElement("span", { className: "yhv-mono", style: { fontSize: 13, color: "var(--fg-muted)" } }, "Appearance"), /* @__PURE__ */ React.createElement("div", { className: "flex gap-2" }, /* @__PURE__ */ React.createElement(Toggle, { selected: settings.theme === "light", onClick: () => onChange({ theme: "light" }), mono: true }, "Light"), /* @__PURE__ */ React.createElement(Toggle, { selected: settings.theme === "dark", onClick: () => onChange({ theme: "dark" }), mono: true }, "Dark"))), /* @__PURE__ */ React.createElement("div", { style: { padding: "8px 0", borderTop: "1px solid var(--border)" } }, /* @__PURE__ */ React.createElement("span", { className: "yhv-mono", style: { fontSize: 13, color: "var(--fg-muted)", display: "block", marginBottom: 8 } }, "Default game limit"), /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap gap-2" }, PRESET_LIMITS.map((n) => /* @__PURE__ */ React.createElement(Toggle, { key: n, selected: settings.defaultGameLimit === n, onClick: () => onChange({ defaultGameLimit: n }), mono: true }, n)))), /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between", style: { padding: "8px 0", borderTop: "1px solid var(--border)", marginBottom: 16 } }, /* @__PURE__ */ React.createElement("span", { className: "yhv-mono", style: { fontSize: 13, color: "var(--fg-muted)" } }, "Round animations"), /* @__PURE__ */ React.createElement(Toggle, { selected: settings.animationsEnabled, onClick: () => onChange({ animationsEnabled: !settings.animationsEnabled }), mono: true }, settings.animationsEnabled ? "On" : "Off")), /* @__PURE__ */ React.createElement("div", { style: { paddingTop: 12, borderTop: "1px solid var(--border)" } }, /* @__PURE__ */ React.createElement("p", { className: "yhv-mono", style: { fontSize: 12, color: "var(--fg-muted)", marginBottom: 8 } }, "Everything here lives only in this browser tab \u2014 nothing is saved to an account. Reloading clears it."), resetConfirm ? /* @__PURE__ */ React.createElement("div", { className: "flex gap-2" }, /* @__PURE__ */ React.createElement(Button, { variant: "danger", onClick: onResetAll, compact: true }, "Confirm reset"), /* @__PURE__ */ React.createElement(Button, { variant: "secondary", onClick: () => onAskReset(false), compact: true }, "Cancel")) : /* @__PURE__ */ React.createElement(Button, { variant: "danger", onClick: () => onAskReset(true), compact: true }, /* @__PURE__ */ React.createElement("span", { className: "flex items-center gap-1.5" }, /* @__PURE__ */ React.createElement(IconTrash, { size: 13 }), " Reset everything"))));
+}
+function YahnevScorer() {
+  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [playerStats, setPlayerStats] = useState({ players: [], totalGamesCompleted: 0, lastWinnerId: null });
+  const [game, setGame] = useState(null);
+  const [accordions, setAccordions] = useState({ setup: false, stats: false, log: false, settings: false });
+  const [setupSelected, setSetupSelected] = useState([]);
+  const [setupLimit, setSetupLimit] = useState(DEFAULT_SETTINGS.defaultGameLimit);
+  const [setupNewName, setSetupNewName] = useState("");
+  const [lateName, setLateName] = useState("");
+  const [roundDraft, setRoundDraft] = useState({ scores: {}, callerId: null });
+  const [lastRoundSummary, setLastRoundSummary] = useState("");
+  const [confirmEndGame, setConfirmEndGame] = useState(false);
+  const [resetConfirm, setResetConfirm] = useState(false);
+  const [sortMode, setSortMode] = useState("roster");
+  const [celebrationQueue, setCelebrationQueue] = useState([]);
+  const [activeCelebration, setActiveCelebration] = useState(null);
+  const { players, totalGamesCompleted, lastWinnerId } = playerStats;
+  useEffect(() => {
+    if (!activeCelebration && celebrationQueue.length > 0) {
+      setActiveCelebration(celebrationQueue[0]);
+      setCelebrationQueue((q) => q.slice(1));
+    }
+  }, [activeCelebration, celebrationQueue]);
+  function addPlayer(name) {
+    const trimmed = (name || "").trim();
+    if (!trimmed) return null;
+    const player = { id: makeId("p"), name: trimmed, totalGames: 0, wins: 0 };
+    setPlayerStats((s) => ({ ...s, players: [...s.players, player] }));
+    return player.id;
+  }
+  function handleSetupToggle(id) {
+    setSetupSelected((sel) => sel.includes(id) ? sel.filter((x) => x !== id) : [...sel, id]);
+  }
+  function handleSetupAddNew() {
+    const id = addPlayer(setupNewName);
+    if (id) {
+      setSetupSelected((sel) => [...sel, id]);
+      setSetupNewName("");
+    }
+  }
+  function handleStartGame() {
+    if (setupSelected.length < 2) return;
+    const roster = setupSelected.map((id) => ({
+      playerId: id,
+      score: 0,
+      streak: 0,
+      active: true,
+      joinedLate: false,
+      startingScore: 0,
+      joinedAtRound: 0,
+      removedAtRound: null
+    }));
+    setGame({ gameId: makeId("game"), status: "active", gameLimit: setupLimit || settings.defaultGameLimit, roster, rounds: [], previousSnapshot: null });
+    setSetupSelected([]);
+    setRoundDraft({ scores: {}, callerId: null });
+    setAccordions({ setup: false, stats: false, log: false, settings: false });
+  }
+  function handleScoreChange(playerId, value) {
+    setRoundDraft((d) => ({ ...d, scores: { ...d.scores, [playerId]: value } }));
+  }
+  function handleCallerChange(playerId) {
+    setRoundDraft((d) => ({ ...d, callerId: playerId }));
+  }
+  const activeRoster = game ? game.roster.filter((r) => r.active) : [];
+  const canSubmitRound = !!game && game.status === "active" && !!roundDraft.callerId && activeRoster.length >= 2 && activeRoster.every((r) => {
+    const v = roundDraft.scores[r.playerId];
+    return v !== void 0 && v !== "" && !isNaN(Number(v)) && Number(v) >= 0;
+  });
+  function handleAddRound() {
+    if (!canSubmitRound || !game) return;
+    const entries = {};
+    activeRoster.forEach((r) => {
+      entries[r.playerId] = Number(roundDraft.scores[r.playerId]);
     });
-
-    state.rounds.push(roundRecord);
-
-    if(!silentAnimations && fireRainNeeded){
-      triggerFireRain();
+    const snapshot = { roster: game.roster, rounds: game.rounds, status: game.status };
+    const { newRoster, winnerId, assafTriggered, additions, events } = playRound(game.roster, entries, roundDraft.callerId);
+    const roundNumber = game.rounds.length + 1;
+    const scoresAfter = {};
+    newRoster.forEach((r) => {
+      scoresAfter[r.playerId] = r.score;
+    });
+    const roundRecord = { roundNumber, entries, callerId: roundDraft.callerId, winnerId, assafTriggered, additions, events, scoresAfter };
+    const over = checkGameOver(newRoster, game.gameLimit);
+    let nextGame = { ...game, roster: newRoster, rounds: [...game.rounds, roundRecord], previousSnapshot: snapshot };
+    if (over.gameOver) {
+      nextGame = { ...nextGame, status: "completed" };
+      setPlayerStats((s) => applyEndGameStats(s, newRoster, over.winnerId));
+    }
+    setGame(nextGame);
+    setRoundDraft({ scores: {}, callerId: null });
+    if (settings.animationsEnabled) {
+      const newCelebrations = buildCelebrations(roundRecord, newRoster, players);
+      if (newCelebrations.length) setCelebrationQueue((q) => [...q, ...newCelebrations]);
+    }
+    setLastRoundSummary(buildRoundSummary(roundRecord, players));
+    setTimeout(() => setLastRoundSummary(""), 4e3);
+  }
+  function handleUndo() {
+    if (!game || !game.previousSnapshot) return;
+    setGame({ ...game, roster: game.previousSnapshot.roster, rounds: game.previousSnapshot.rounds, status: game.previousSnapshot.status, previousSnapshot: null });
+    setRoundDraft({ scores: {}, callerId: null });
+    setLastRoundSummary("");
+  }
+  function handleRemovePlayer(playerId) {
+    if (!game) return;
+    const roundNumber = game.rounds.length;
+    const roster = game.roster.map((r) => r.playerId === playerId ? { ...r, active: false, removedAtRound: roundNumber } : r);
+    setGame({ ...game, roster });
+  }
+  function handleAddExistingToGame(playerId) {
+    if (!game) return;
+    const score = computeLateEntrantScore(game.roster);
+    const roundNumber = game.rounds.length;
+    const existing = game.roster.find((r) => r.playerId === playerId);
+    const roster = existing ? game.roster.map((r) => r.playerId === playerId ? { ...r, active: true, joinedLate: true, startingScore: score, score, streak: 0, removedAtRound: null, joinedAtRound: roundNumber } : r) : [...game.roster, { playerId, score, streak: 0, active: true, joinedLate: true, startingScore: score, joinedAtRound: roundNumber, removedAtRound: null }];
+    setGame({ ...game, roster });
+  }
+  function handleAddNewToGame() {
+    if (!game) return;
+    const id = addPlayer(lateName);
+    if (id) {
+      handleAddExistingToGame(id);
+      setLateName("");
     }
   }
-
-  function randomIntInclusive(min, max){
-    if(min > max) [min, max] = [max, min];
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+  function handleGameLimitChange(value) {
+    if (!game) return;
+    setGame({ ...game, gameLimit: value });
   }
-
-  // Events
-  addPlayerBtn.addEventListener('click', ()=>{
-    const name = playerNameInput.value.trim();
-    if(!name) return;
-    addPlayerNormal(name);
-    playerNameInput.value = '';
-    playerNameInput.focus();
-    renderTally();
-  });
-
-  addLateBtn.addEventListener('click', ()=>{
-    const name = playerNameInput.value.trim();
-    if(!name) return;
-
-    if(state.rounds.length === 0 && state.players.length === 0){
-      addPlayerNormal(name);
-    } else {
-      // late entrant mid-game
-      addLateEntrant(name);
+  function handleEndGameEarly() {
+    setGame(null);
+    setRoundDraft({ scores: {}, callerId: null });
+    setConfirmEndGame(false);
+  }
+  function handleNewGameSamePlayers() {
+    if (!game) return;
+    const ids = game.roster.filter((r) => r.active).map((r) => r.playerId);
+    const roster = ids.map((id) => ({ playerId: id, score: 0, streak: 0, active: true, joinedLate: false, startingScore: 0, joinedAtRound: 0, removedAtRound: null }));
+    setGame({ gameId: makeId("game"), status: "active", gameLimit: game.gameLimit, roster, rounds: [], previousSnapshot: null });
+    setAccordions({ setup: false, stats: false, log: false, settings: false });
+  }
+  function handleNewGameDifferentPlayers() {
+    setGame(null);
+    setSetupSelected([]);
+    setSetupLimit(settings.defaultGameLimit);
+  }
+  function handleViewStats() {
+    setAccordions((a) => ({ ...a, stats: true }));
+  }
+  function handleResetAll() {
+    setPlayerStats({ players: [], totalGamesCompleted: 0, lastWinnerId: null });
+    setGame(null);
+    setSettings(DEFAULT_SETTINGS);
+    setSetupSelected([]);
+    setRoundDraft({ scores: {}, callerId: null });
+    setResetConfirm(false);
+  }
+  function toggleAccordion(key) {
+    setAccordions((a) => ({ ...a, [key]: !a[key] }));
+  }
+  const view = !game ? "setup" : game.status;
+  const colors = THEMES[settings.theme] || THEMES.light;
+  const rootVars = {
+    "--bg": colors.bg,
+    "--surface": colors.surface,
+    "--fg": colors.fg,
+    "--fg-muted": colors.fgMuted,
+    "--border": colors.border,
+    "--border-strong": colors.borderStrong,
+    "--accent": ACCENT,
+    "--accent-on": ACCENT_ON,
+    background: "var(--bg)",
+    color: "var(--fg)",
+    position: "relative",
+    minHeight: "100vh",
+    display: "flex",
+    flexDirection: "column"
+  };
+  let bottomBar = null;
+  if (view === "active" && game && confirmEndGame) {
+    bottomBar = /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "yhv-mono", style: { fontSize: 13, color: "var(--fg-muted)", marginBottom: 10, textAlign: "center" } }, "End this game now? It won't count toward stats."), /* @__PURE__ */ React.createElement("div", { className: "flex gap-2" }, /* @__PURE__ */ React.createElement(Button, { variant: "secondary", onClick: () => setConfirmEndGame(false), full: true }, "Keep playing"), /* @__PURE__ */ React.createElement(Button, { variant: "danger", onClick: handleEndGameEarly, full: true }, "End game")));
+  } else if (view === "active" && game) {
+    bottomBar = /* @__PURE__ */ React.createElement("div", { className: "flex gap-2" }, /* @__PURE__ */ React.createElement(Button, { variant: "secondary", onClick: handleUndo, disabled: !game.previousSnapshot }, /* @__PURE__ */ React.createElement("span", { className: "flex items-center gap-1.5" }, /* @__PURE__ */ React.createElement(IconUndo, { size: 15 }), " Undo")), /* @__PURE__ */ React.createElement("div", { style: { flex: 1 } }, /* @__PURE__ */ React.createElement(Button, { variant: "primary", onClick: handleAddRound, disabled: !canSubmitRound, full: true }, "Add round")));
+  } else if (view === "setup") {
+    bottomBar = /* @__PURE__ */ React.createElement(Button, { variant: "primary", onClick: handleStartGame, disabled: setupSelected.length < 2, full: true }, "Start game");
+  } else if (view === "completed" && game) {
+    bottomBar = /* @__PURE__ */ React.createElement(Button, { variant: "primary", onClick: handleNewGameSamePlayers, full: true }, "New game \xB7 same players");
+  }
+  return /* @__PURE__ */ React.createElement("div", { className: "yhv-app yhv-mono", style: rootVars }, /* @__PURE__ */ React.createElement("style", null, STYLE), /* @__PURE__ */ React.createElement("div", { style: { flex: 1, width: "100%", maxWidth: 420, margin: "0 auto", padding: "20px 16px 28px" } }, /* @__PURE__ */ React.createElement(Header, { status: view, roundNumber: game ? game.rounds.length + 1 : 0, gameLimit: game ? game.gameLimit : 0 }), view === "setup" ? /* @__PURE__ */ React.createElement(
+    SetupView,
+    {
+      players,
+      selected: setupSelected,
+      gameLimit: setupLimit,
+      newName: setupNewName,
+      onToggle: handleSetupToggle,
+      onNewNameChange: setSetupNewName,
+      onAddNew: handleSetupAddNew,
+      onLimitChange: setSetupLimit,
+      presets: PRESET_LIMITS
     }
-
-    playerNameInput.value = '';
-    playerNameInput.focus();
-  });
-
-  playerNameInput.addEventListener('keydown', (e)=>{
-    if(e.key === 'Enter'){ addPlayerBtn.click(); }
-  });
-
-  submitRoundBtn.addEventListener('click', ()=>{
-    if(state.players.length === 0) return;
-    const parsed = parseRoundInputs();
-    if(!parsed.ok){ alert(parsed.error); return; }
-
-    applyRound(parsed);
-    save();
-
-    clearRoundInputs();
-    renderBoard();
-    renderLog();
-    renderRoundForm();
-    renderPlayers();
-    roundNumberEl.textContent = state.rounds.length;
-    undoBtn.disabled = state.rounds.length === 0;
-
-    checkGameOverAndRecordWinner();
-  });
-
-  undoBtn.addEventListener('click', ()=>{
-    if(!state.rounds.length) return;
-    undoLastRound();
-    renderBoard(); renderLog(); renderRoundForm(); renderPlayers();
-    roundNumberEl.textContent = state.rounds.length;
-    undoBtn.disabled = state.rounds.length === 0;
-  });
-
-  newGameBtn.addEventListener('click', ()=>{
-    if(state.players.length === 0){
-      alert('Add players first.');
-      return;
+  ) : null, view === "active" && game ? /* @__PURE__ */ React.createElement(
+    ActiveView,
+    {
+      roster: game.roster,
+      players,
+      roundDraft,
+      onScoreChange: handleScoreChange,
+      onCallerChange: handleCallerChange,
+      onAskEndGame: () => setConfirmEndGame(true),
+      lastRoundSummary,
+      sortMode,
+      onChangeSortMode: setSortMode
     }
-    if(!confirm('Start a new game with the same players? (Scores + rounds reset, tally stays.)')) return;
-    newGameKeepPlayers();
-  });
+  ) : null, view === "completed" && game ? /* @__PURE__ */ React.createElement(GameOverView, { roster: game.roster, players, onDifferent: handleNewGameDifferentPlayers, onViewStats: handleViewStats }) : null, view === "active" && game ? /* @__PURE__ */ React.createElement(AccordionSection, { title: "Game setup", icon: /* @__PURE__ */ React.createElement(IconUsers, { size: 16, color: "var(--fg-muted)" }), open: accordions.setup, onToggle: () => toggleAccordion("setup") }, /* @__PURE__ */ React.createElement(
+    GameSetupAccordionContent,
+    {
+      roster: game.roster,
+      players,
+      gameLimit: game.gameLimit,
+      onLimitChange: handleGameLimitChange,
+      onRemove: handleRemovePlayer,
+      onAddExisting: handleAddExistingToGame,
+      lateName,
+      onLateNameChange: setLateName,
+      onAddNew: handleAddNewToGame
+    }
+  )) : null, /* @__PURE__ */ React.createElement(AccordionSection, { title: "Stats", icon: /* @__PURE__ */ React.createElement(IconTrophy, { size: 16, color: "var(--fg-muted)" }), open: accordions.stats, onToggle: () => toggleAccordion("stats") }, /* @__PURE__ */ React.createElement(StatsAccordionContent, { players, totalGamesCompleted, lastWinnerId })), /* @__PURE__ */ React.createElement(AccordionSection, { title: "Round log", icon: /* @__PURE__ */ React.createElement(IconScroll, { size: 16, color: "var(--fg-muted)" }), open: accordions.log, onToggle: () => toggleAccordion("log"), badge: game ? game.rounds.length || null : null }, /* @__PURE__ */ React.createElement(RoundLogAccordionContent, { rounds: game ? game.rounds : [], players })), /* @__PURE__ */ React.createElement(AccordionSection, { title: "Settings", icon: /* @__PURE__ */ React.createElement(IconGear, { size: 16, color: "var(--fg-muted)" }), open: accordions.settings, onToggle: () => toggleAccordion("settings") }, /* @__PURE__ */ React.createElement(SettingsAccordionContent, { settings, onChange: (patch) => setSettings((s) => ({ ...s, ...patch })), onResetAll: handleResetAll, resetConfirm, onAskReset: setResetConfirm }))), bottomBar ? /* @__PURE__ */ React.createElement(
+    "div",
+    {
+      style: {
+        position: "sticky",
+        bottom: 0,
+        background: "var(--bg)",
+        borderTop: "2px solid var(--border-strong)",
+        padding: "12px 16px calc(12px + env(safe-area-inset-bottom, 0px))",
+        zIndex: 30
+      }
+    },
+    /* @__PURE__ */ React.createElement("div", { style: { maxWidth: 420, margin: "0 auto" } }, bottomBar)
+  ) : null, /* @__PURE__ */ React.createElement(Celebration, { event: activeCelebration, onDone: () => setActiveCelebration(null) }));
+}
+const __root = ReactDOM.createRoot(document.getElementById("root"));
+__root.render(React.createElement(YahnevScorer));
 
-  resetBtn.addEventListener('click', ()=>{
-    if(!confirm('Reset EVERYTHING?\nThis clears players, scores, rounds, AND tallies.')) return;
-
-    state.players = [];
-    state.rounds = [];
-    state.gameLimit = 100;
-
-    tally.gamesPlayed = 0;
-    tally.lastWinner = null;
-    tally.winsByName = {};
-
-    save();
-    renderPlayers(); renderBoard(); renderLog(); renderRoundForm(); renderGameLimit(); renderTally();
-    roundNumberEl.textContent = '0';
-    undoBtn.disabled = true;
-  });
-
-  document.addEventListener('click', (e)=>{
-    const btn = e.target.closest('.limit-btn');
-    if(!btn) return;
-    const val = Number(btn.dataset.limit);
-    if(!val) return;
-    state.gameLimit = val;
-    save();
-    renderGameLimit();
-    renderBoard();
-  });
-
-  themeToggle.addEventListener('change', ()=>{
-    document.body.setAttribute('data-theme', themeToggle.checked ? 'dark' : 'light');
-    localStorage.setItem('yahnev_theme', themeToggle.checked ? 'dark' : 'light');
-  });
-
-  // Init
-  (function init(){
-    load();
-
-    renderPlayers();
-    renderRoundForm();
-    renderBoard();
-    renderLog();
-    renderGameLimit();
-    renderTally();
-
-    roundNumberEl.textContent = state.rounds.length;
-    undoBtn.disabled = state.rounds.length === 0;
-
-    const savedTheme = localStorage.getItem('yahnev_theme') || 'dark';
-    document.body.setAttribute('data-theme', savedTheme);
-    themeToggle.checked = savedTheme === 'dark';
-  })();
-})();
 </script>
 </body>
 </html>
