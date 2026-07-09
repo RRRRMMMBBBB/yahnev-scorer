@@ -4,6 +4,13 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Yahnev Scorer</title>
+
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Yahnev">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0A0A0A">
+
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; width: 100%; }
@@ -70,7 +77,8 @@ function buildRoundSummary(round, players) {
   const caller = nameOf(players, round.callerId);
   if (round.assafTriggered) {
     const winner = nameOf(players, round.winnerId);
-    return `Assaf! ${winner} undercut ${caller} \u2014 ${caller} +25, ${winner} takes the round.`;
+    const penalty = round.entries[round.callerId] + 25;
+    return `Assaf! ${winner} undercut ${caller} \u2014 ${caller} +${penalty}, ${winner} takes the round.`;
   }
   return `${caller} calls Yahnev and takes the round clean.`;
 }
@@ -102,7 +110,7 @@ function playRound(roster, entries, callerId) {
   const additions = {};
   activeIds.forEach((id) => {
     if (id === winnerId) additions[id] = 0;
-    else if (assafTriggered && id === callerId) additions[id] = 25;
+    else if (assafTriggered && id === callerId) additions[id] = entries[id] + 25;
     else additions[id] = entries[id];
   });
   const rosterById = {};
