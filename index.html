@@ -4,13 +4,11 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Yahnev Scorer</title>
-
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Yahnev">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0A0A0A">
-
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; width: 100%; }
@@ -24,31 +22,79 @@
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script>
 function IconChevronDown({ size = 16, color, style }) {
-  return /* @__PURE__ */ React.createElement("svg", { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color || "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", style }, /* @__PURE__ */ React.createElement("polyline", { points: "6 9 12 15 18 9" }));
+  return React.createElement(
+    "svg",
+    { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color || "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", style },
+    React.createElement("polyline", { points: "6 9 12 15 18 9" })
+  );
 }
 function IconFlame({ size = 16, color, style }) {
-  return /* @__PURE__ */ React.createElement("svg", { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color || "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", style }, /* @__PURE__ */ React.createElement("path", { d: "M12 3c1.2 3-2.6 4.6-2.6 8.6a2.6 2.6 0 005.2 0c0-1.3-.7-2-1.3-2.6.1 1.1-.5 1.7-1.1 1.3.7-1.6 0-4-1-6.3-.7.9-1.5 1.6-2.4 2.2" }));
+  return React.createElement(
+    "svg",
+    { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color || "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", style },
+    React.createElement("path", { d: "M12 3c1.2 3-2.6 4.6-2.6 8.6a2.6 2.6 0 005.2 0c0-1.3-.7-2-1.3-2.6.1 1.1-.5 1.7-1.1 1.3.7-1.6 0-4-1-6.3-.7.9-1.5 1.6-2.4 2.2" })
+  );
 }
 function IconTrophy({ size = 16, color, style }) {
-  return /* @__PURE__ */ React.createElement("svg", { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color || "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", style }, /* @__PURE__ */ React.createElement("path", { d: "M7 4h10v5a5 5 0 01-10 0V4z" }), /* @__PURE__ */ React.createElement("path", { d: "M5 4h2v2a2.5 2.5 0 01-2.5 2.5A2.5 2.5 0 012 6 2 2 0 015 4zM19 4h-2v2a2.5 2.5 0 002.5 2.5A2.5 2.5 0 0022 6a2 2 0 00-3-2z" }), /* @__PURE__ */ React.createElement("path", { d: "M9 17h6M12 14v6" }));
+  return React.createElement(
+    "svg",
+    { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color || "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", style },
+    React.createElement("path", { d: "M7 4h10v5a5 5 0 01-10 0V4z" }),
+    React.createElement("path", { d: "M5 4h2v2a2.5 2.5 0 01-2.5 2.5A2.5 2.5 0 012 6 2 2 0 015 4zM19 4h-2v2a2.5 2.5 0 002.5 2.5A2.5 2.5 0 0022 6a2 2 0 00-3-2z" }),
+    React.createElement("path", { d: "M9 17h6M12 14v6" })
+  );
 }
 function IconX({ size = 16, color, style }) {
-  return /* @__PURE__ */ React.createElement("svg", { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color || "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", style }, /* @__PURE__ */ React.createElement("line", { x1: "5", y1: "5", x2: "19", y2: "19" }), /* @__PURE__ */ React.createElement("line", { x1: "19", y1: "5", x2: "5", y2: "19" }));
+  return React.createElement(
+    "svg",
+    { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color || "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", style },
+    React.createElement("line", { x1: "5", y1: "5", x2: "19", y2: "19" }),
+    React.createElement("line", { x1: "19", y1: "5", x2: "5", y2: "19" })
+  );
 }
 function IconTrash({ size = 16, color, style }) {
-  return /* @__PURE__ */ React.createElement("svg", { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color || "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", style }, /* @__PURE__ */ React.createElement("path", { d: "M4 7h16M9 7V4h6v3" }), /* @__PURE__ */ React.createElement("path", { d: "M6 7l1 13a2 2 0 002 2h6a2 2 0 002-2l1-13" }));
+  return React.createElement(
+    "svg",
+    { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color || "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", style },
+    React.createElement("path", { d: "M4 7h16M9 7V4h6v3" }),
+    React.createElement("path", { d: "M6 7l1 13a2 2 0 002 2h6a2 2 0 002-2l1-13" })
+  );
 }
 function IconUndo({ size = 16, color, style }) {
-  return /* @__PURE__ */ React.createElement("svg", { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color || "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", style }, /* @__PURE__ */ React.createElement("polyline", { points: "9 14 4 9 9 4" }), /* @__PURE__ */ React.createElement("path", { d: "M20 20v-7a4 4 0 0 0-4-4H4" }));
+  return React.createElement(
+    "svg",
+    { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color || "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", style },
+    React.createElement("polyline", { points: "9 14 4 9 9 4" }),
+    React.createElement("path", { d: "M20 20v-7a4 4 0 0 0-4-4H4" })
+  );
 }
 function IconUsers({ size = 16, color, style }) {
-  return /* @__PURE__ */ React.createElement("svg", { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color || "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", style }, /* @__PURE__ */ React.createElement("circle", { cx: "9", cy: "8", r: "3" }), /* @__PURE__ */ React.createElement("path", { d: "M3 20c0-3 2.7-5 6-5s6 2 6 5" }), /* @__PURE__ */ React.createElement("circle", { cx: "17", cy: "9", r: "2.3" }), /* @__PURE__ */ React.createElement("path", { d: "M14.5 20c.3-2 2-3.6 4-3.6" }));
+  return React.createElement(
+    "svg",
+    { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color || "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", style },
+    React.createElement("circle", { cx: "9", cy: "8", r: "3" }),
+    React.createElement("path", { d: "M3 20c0-3 2.7-5 6-5s6 2 6 5" }),
+    React.createElement("circle", { cx: "17", cy: "9", r: "2.3" }),
+    React.createElement("path", { d: "M14.5 20c.3-2 2-3.6 4-3.6" })
+  );
 }
 function IconScroll({ size = 16, color, style }) {
-  return /* @__PURE__ */ React.createElement("svg", { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color || "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", style }, /* @__PURE__ */ React.createElement("rect", { x: "5", y: "3", width: "14", height: "18", rx: "2" }), /* @__PURE__ */ React.createElement("line", { x1: "8", y1: "8", x2: "16", y2: "8" }), /* @__PURE__ */ React.createElement("line", { x1: "8", y1: "12", x2: "16", y2: "12" }), /* @__PURE__ */ React.createElement("line", { x1: "8", y1: "16", x2: "13", y2: "16" }));
+  return React.createElement(
+    "svg",
+    { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color || "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", style },
+    React.createElement("rect", { x: "5", y: "3", width: "14", height: "18", rx: "2" }),
+    React.createElement("line", { x1: "8", y1: "8", x2: "16", y2: "8" }),
+    React.createElement("line", { x1: "8", y1: "12", x2: "16", y2: "12" }),
+    React.createElement("line", { x1: "8", y1: "16", x2: "13", y2: "16" })
+  );
 }
 function IconGear({ size = 16, color, style }) {
-  return /* @__PURE__ */ React.createElement("svg", { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color || "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", style }, /* @__PURE__ */ React.createElement("circle", { cx: "12", cy: "12", r: "3" }), /* @__PURE__ */ React.createElement("path", { d: "M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" }));
+  return React.createElement(
+    "svg",
+    { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color || "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", style },
+    React.createElement("circle", { cx: "12", cy: "12", r: "3" }),
+    React.createElement("path", { d: "M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" })
+  );
 }
 const { useState, useEffect, useMemo } = React;
 const EXACT_TOTALS = [50, 100, 150, 200];
@@ -262,16 +308,23 @@ const STYLE = `
   }
 
   @keyframes yhv-invert-strobe {
-    0%, 100% { filter: invert(0); }
-    16.66% { filter: invert(1); }
-    33.33% { filter: invert(0); }
-    50% { filter: invert(1); }
-    66.66% { filter: invert(0); }
-    83.33% { filter: invert(1); }
+    0%   { filter: invert(0); }
+    8%   { filter: invert(1); }
+    16%  { filter: invert(0); }
+    25%  { filter: invert(1); }
+    33%  { filter: invert(0); }
+    41%  { filter: invert(1); }
+    50%  { filter: invert(0); }
+    58%  { filter: invert(1); }
+    66%  { filter: invert(0); }
+    75%  { filter: invert(1); }
+    83%  { filter: invert(0); }
+    91%  { filter: invert(1); }
+    100% { filter: invert(0); }
   }
 
   .yhv-celebration-scrim { animation: yhv-fade-in .15s ease-out; }
-  .yhv-celebration-strobe { animation: yhv-invert-strobe 2.1s steps(1, end) 1; }
+  .yhv-celebration-strobe { animation: yhv-invert-strobe 1.3s steps(1, end) 1; }
   .yhv-flame-particle { position: absolute; will-change: transform, opacity; }
   .yhv-eggplant-particle { position: absolute; will-change: transform, opacity; }
 
@@ -285,20 +338,11 @@ const STYLE = `
   html, body, #root { width: 100%; }
   h1, h2, h3, h4, h5, h6, p { margin: 0; font-size: inherit; font-weight: inherit; }
   button, input { font-family: inherit; color: inherit; }
-  .flex { display: flex; }
-  .flex-1 { flex: 1 1 0%; }
-  .flex-col { flex-direction: column; }
-  .flex-wrap { flex-wrap: wrap; }
-  .gap-1 { gap: 4px; }
-  .gap-1.5 { gap: 6px; }
-  .gap-2 { gap: 8px; }
-  .gap-3 { gap: 12px; }
-  .items-center { align-items: center; }
-  .items-end { align-items: flex-end; }
-  .justify-between { justify-content: space-between; }
-  .min-w-0 { min-width: 0px; }
-  .text-right { text-align: right; }
-  .w-full { width: 100%; }
+  .flex { display: flex; } .flex-1 { flex: 1 1 0%; } .flex-col { flex-direction: column; }
+  .flex-wrap { flex-wrap: wrap; } .gap-1 { gap: 4px; } .gap-1.5 { gap: 6px; }
+  .gap-2 { gap: 8px; } .gap-3 { gap: 12px; } .items-center { align-items: center; }
+  .items-end { align-items: flex-end; } .justify-between { justify-content: space-between; }
+  .min-w-0 { min-width: 0px; } .text-right { text-align: right; } .w-full { width: 100%; }
 `;
 function Button({ children, onClick, disabled, variant = "primary", full, compact }) {
   const variants = {
@@ -437,12 +481,18 @@ function makeGridParticles(direction) {
       const topPct = (r + 0.5) / rows * 100;
       const leftPct = (c + 0.5) / cols * 100;
       const rowFraction = direction === "up" ? 1 - r / (rows - 1) : r / (rows - 1);
+      const roll = Math.random();
+      let size;
+      if (roll < 0.15) size = 72 + Math.random() * 38;
+      else if (roll < 0.4) size = 38 + Math.random() * 22;
+      else size = 16 + Math.random() * 16;
       list.push({
-        top: topPct + (Math.random() - 0.5) * 5,
-        left: leftPct + (Math.random() - 0.5) * 5,
-        size: 24 + Math.random() * 16,
+        top: topPct + (Math.random() - 0.5) * 8,
+        left: leftPct + (Math.random() - 0.5) * 8,
+        size,
+        rot: (Math.random() - 0.5) * 40,
         fillDelay: rowFraction * 0.6 + Math.random() * 0.2,
-        fillDuration: 0.4 + Math.random() * 0.2
+        fillDuration: 0.3 + Math.random() * 0.25
       });
     }
   }
@@ -477,6 +527,7 @@ function Celebration({ event, onDone }) {
           top: `${f.top}%`,
           left: `${f.left}%`,
           fontSize: f.size,
+          transform: `rotate(${f.rot}deg)`,
           animation: `yhv-flame-rise-in ${f.fillDuration}s ease-out ${f.fillDelay}s 1 forwards, yhv-flame-burn-out 1.4s ease-in 1.6s 1 forwards`
         }
       },
@@ -491,6 +542,7 @@ function Celebration({ event, onDone }) {
           top: `${e.top}%`,
           left: `${e.left}%`,
           fontSize: e.size,
+          transform: `rotate(${e.rot}deg)`,
           animation: `yhv-eggplant-drop-in ${e.fillDuration}s ease-out ${e.fillDelay}s 1 forwards, yhv-eggplant-drop-out 1.4s cubic-bezier(.55,0,1,.45) 1.6s 1 forwards`
         }
       },
@@ -954,7 +1006,4 @@ function YahnevScorer(props) {
 }
 const __root = ReactDOM.createRoot(document.getElementById("root"));
 __root.render(React.createElement(YahnevScorer, { storage: window.localStorage }));
-
-</script>
-</body>
-</html>
+</script></body></html>
